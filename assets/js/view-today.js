@@ -4,6 +4,16 @@ window.ViewToday = (function () {
   let dailyData = null;
 
   const WEEK = ["周日","周一","周二","周三","周四","周五","周六"];
+
+  /* 每日一句类型元数据：标题 + 主题色，让每天看起来都不一样 */
+  const WORD_META = {
+    "en-quote":  { tag:"🌟 每日名句",    color:"#C9A27E" },
+    "zh-quote":  { tag:"📜 中文名言",    color:"#A3B4C2" },
+    "trivia":    { tag:"❄️ 冷知识",      color:"#9FB3A4" },
+    "challenge": { tag:"🎯 今日小挑战",  color:"#C0736F" },
+    "question":  { tag:"💭 今日一问",     color:"#C79AA0" },
+    "proverb":   { tag:"🪞 一句话箴言",  color:"#CBB999" }
+  };
   const MOODS = ["😌","🥰","😐","😮‍💨","🥲"];
   const MOOD_TXT = ["平静","满足","普通","疲惫","低落"];
   function dateStr(dt){
@@ -281,20 +291,22 @@ window.ViewToday = (function () {
     const box = document.getElementById("newsBox");
     if(!box) return;
     if(!dailyData) dailyData = await S.fetchDaily();
-    // 每日一句
+    // 每日一句（类型轮换：名句 / 冷知识 / 小挑战 / 今日一问 / 箴言）
     const pbox = document.getElementById("phraseBox");
     if(pbox){
       const w = dailyData.word || DB.fallbackWord;
       const it = w.item || {};
+      const meta = WORD_META[it.type] || WORD_META["en-quote"];
+      // 卡片标题随类型变化，让每天都不一样
+      const card = pbox.closest(".card");
+      if(card){ const hd = card.querySelector(".sec-head h2"); if(hd) hd.innerHTML = `<span class="dot" style="background:${meta.color}"></span>${meta.tag} · 08:30 更新`; }
       let h = "";
       if(w.date) h += `<div class="tiny" style="margin-bottom:8px;color:#8a8a85">📅 ${esc(w.date)} 推送</div>`;
-      if(it.type === "en-quote"){
-        h += `<div style="font-size:16px;line-height:1.7;font-weight:600;color:#3f3f3b">“${esc(it.text||"")}”</div>`;
-        if(it.author) h += `<div style="margin-top:8px;color:#C9A27E;font-size:13px">— ${esc(it.author)}</div>`;
-      } else if(it.text){
-        h += `<div style="font-size:17px;line-height:1.8;font-weight:600;color:#3f3f3b">${esc(it.text)}</div>`;
-      }
-      if(it.zh) h += `<div style="margin-top:10px;font-size:14px;line-height:1.7;color:#6e6e6a">${esc(it.zh)}</div>`;
+      h += `<div class="tiny" style="margin-bottom:10px;color:${meta.color};font-weight:700;letter-spacing:.3px">${meta.tag}</div>`;
+      if(it.text) h += `<div style="font-size:17px;line-height:1.85;font-weight:600;color:#3f3f3b">${esc(it.text)}</div>`;
+      if(it.zh && it.type!=="zh-quote") h += `<div style="margin-top:10px;font-size:14px;line-height:1.7;color:#6e6e6a">${esc(it.zh)}</div>`;
+      if(it.author) h += `<div style="margin-top:8px;color:${meta.color};font-size:13px">— ${esc(it.author)}</div>`;
+      if(it.type==="challenge" && it.tag) h += `<div style="margin-top:10px;display:inline-block;padding:3px 11px;border-radius:20px;background:${meta.color}1a;color:${meta.color};font-size:12px;font-weight:600">#${esc(it.tag)}</div>`;
       if(w.note) h += `<div class="scene-tip" style="margin-top:10px">${esc(w.note)}</div>`;
       pbox.innerHTML = h;
     }

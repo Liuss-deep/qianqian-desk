@@ -1,10 +1,8 @@
 {
   "date": "2026-08-05",
-  "note": "新的一天，先把脸转向光。",
   "item": {
-    "type": "en-quote",
-    "text": "Keep your face always toward the sunshine—and shadows will fall behind you.",
-    "author": "Walt Whitman",
-    "zh": "始终面向阳光，影子自会落在身后。"
+    "type": "zh-quote",
+    "text": "所有的为时已晚，其实都是恰逢其时。",
+    "author": "佚名"
   }
 }
