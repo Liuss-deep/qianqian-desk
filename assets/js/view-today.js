@@ -34,7 +34,7 @@ window.ViewToday = (function () {
     const q = S.pick(DB.quotes, 1);
     const lv = S.level();
     const rv = S.d.review[t] || {};
-    const quests = S.pickMany(DB.quests, 4, 5);
+    const quests = S.dailyQuests(DB.quests, 4);
     const qDone = S.d.questDone[t] || [];
 
     return `

@@ -108,6 +108,26 @@ window.S = (function () {
     return out;
   }
 
+  /* 地球 Online 今日任务：按日期哈希打散，相邻两天明显不同，且多端一致 */
+  function hashU32(x){
+    x = x >>> 0;
+    x = Math.imul(x ^ (x >>> 15), 0x85ebca6b) >>> 0;
+    x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35) >>> 0;
+    return (x ^ (x >>> 16)) >>> 0;
+  }
+  function dailyQuests(arr, count){
+    if(!arr || !arr.length) return [];
+    const h = hashU32(dayNum());
+    const out = [], used = new Set();
+    let i = 0, guard = 0;
+    while(out.length < Math.min(count, arr.length) && guard < arr.length*4){
+      const k = hashU32(h + i*2654435761) % arr.length;
+      if(!used.has(k)){ used.add(k); out.push(arr[k]); }
+      i++; guard++;
+    }
+    return out;
+  }
+
   /* ---------- 待办 ---------- */
   function todos(date){ const k = date||today(); if(!d.todos[k]) d.todos[k]=[]; return d.todos[k]; }
   function addTodo(t, pri){
@@ -478,7 +498,7 @@ window.S = (function () {
   function changePin(oldP, newP){ if(!verifyPin(oldP)) return false; d.lock.pin = hashPin(newP); save(); return true; }
 
   return { get d(){return d;}, save, persist, today, ymd, dayNum, prettyDate, greet,
-           pick, pickIdx, pickMany, todos, addTodo, toggleTodo, delTodo,
+           pick, pickIdx, pickMany, dailyQuests, todos, addTodo, toggleTodo, delTodo,
            addCoin, level, checkIn, checkBadges, monthBills, sum,
            sv, addSaving, setSalaryDay, setGoal, daysToSalary,
            putImg, getImg, delImg, compressImage, fetchDaily, reset, exportData, importData,

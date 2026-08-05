@@ -180,7 +180,7 @@ window.ViewLife = (function () {
   /* ---------- 地球 Online ---------- */
   function game(){
     const t = S.today();
-    const qs = S.pickMany(DB.quests, 6, 5);
+    const qs = S.dailyQuests(DB.quests, 6);
     const done = S.d.questDone[t] || [];
     const lv = S.level();
     const gotBadge = new Set(S.d.badges);
