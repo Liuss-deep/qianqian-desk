@@ -3,6 +3,7 @@ window.ViewMoney = (function () {
   const { esc } = UI;
   let tab = "ledger";
   let billType = "out", billCat = "food";
+  let billDate = S.today();
 
   function render(){
     return `
@@ -27,7 +28,7 @@ window.ViewMoney = (function () {
     const sPct = sv.goal>0 ? Math.min(100, Math.round(sv.balance/sv.goal*100)) : 0;
     const sDays = S.daysToSalary();
     const bpct = Math.min(100, out/budget*100);
-    const todayBills = S.d.bills.filter(b=>b.date===S.today());
+    const todayBills = S.d.bills.filter(b=>b.date===billDate);
     const recent = S.d.bills.slice().sort((a,b)=>b.date<a.date?-1:1).reverse().slice(0,12);
 
     // 分类占比
@@ -111,7 +112,7 @@ window.ViewMoney = (function () {
 
     <div class="card">
       <div class="sec-head"><h2><span class="dot" style="background:var(--sand)"></span>快速记一笔</h2>
-        <span class="more">今天 ${todayBills.length} 笔</span></div>
+        <span class="more">${billDate===S.today()?"今天":"该日"} ${todayBills.length} 笔</span></div>
       <div style="display:flex;gap:8px;margin-bottom:12px">
         <button class="chip ${billType==="out"?"on":""}" data-act="bType" data-v="out" style="flex:1;text-align:center">支出</button>
         <button class="chip ${billType==="in"?"on":""}" data-act="bType" data-v="in" style="flex:1;text-align:center">收入</button>
@@ -120,6 +121,10 @@ window.ViewMoney = (function () {
         ${(billType==="out"?DB.cats:DB.incomeCats).map(c=>
           `<button class="cat-i ${billCat===c.k?"on":""}" data-act="bCat" data-v="${c.k}">
             <span class="e">${c.e}</span><span class="l">${c.l}</span></button>`).join("")}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span class="tiny" style="color:#8a8a85;font-weight:600;white-space:nowrap">记账日期</span>
+        <input class="inp" id="bDate" type="date" value="${billDate}" max="${S.today()}" style="flex:1;min-width:0" />
       </div>
       <div style="display:flex;gap:8px">
         <input class="inp" id="bAmt" type="number" inputmode="decimal" placeholder="金额" style="flex:0 0 108px" />
@@ -285,7 +290,7 @@ window.ViewMoney = (function () {
   UI.on("addBill", ()=>{
     const a = document.getElementById("bAmt").value;
     if(!a || Number(a)<=0) return UI.toast("请输入金额");
-    S.d.bills.push({ id:Date.now()+"", date:S.today(), type:billType, cat:billCat,
+    S.d.bills.push({ id:Date.now()+"", date:(document.getElementById("bDate")||{}).value || billDate, type:billType, cat:billCat,
       amt:Number(a), note:document.getElementById("bNote").value.trim() });
     S.save(); S.addCoin(5,"记账"); App.refresh();
   });
@@ -415,5 +420,9 @@ window.ViewMoney = (function () {
       <h4 style="margin:5px 0 5px;font-size:14.5px">${esc(x.t)}</h4>
       <p style="margin:0;font-size:12.5px;line-height:1.75;color:var(--ink-2)">${esc(x.d)}</p></div>`).join("")));
 
-  return { render, afterRender(){} };
+  function afterRender(){
+    const el = document.getElementById("bDate");
+    if(el) el.addEventListener("change", ()=>{ billDate = el.value || S.today(); App.refresh(); });
+  }
+  return { render, afterRender };
 })();
