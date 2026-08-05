@@ -29,6 +29,7 @@ window.S = (function () {
     posts: [],          // 内容发布记录
     scripts: [],        // 脚本拆解记录
     tipRead: {},        // 剪辑技巧已读
+    editNotes: [],      // 剪辑技巧笔记 [{id,date,title,note}]
     muses: [],          // 碎碎念记录 [{id,ts,date,type,text,photoId}]
     newsCache: null,
     trendCache: null,

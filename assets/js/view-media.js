@@ -167,6 +167,18 @@ window.ViewMedia = (function () {
       <div class="kv"><span>拍摄</span><b>手机 + 一个三脚架就够</b></div>
       <div class="kv"><span>提词</span><b>剪映「提词器」或备忘录</b></div>
       <div class="scene-tip">设备不是瓶颈，选题和表达才是。前 50 条视频不要花钱买任何设备。</div>
+    </div>
+
+    <div class="card">
+      <div class="sec-head"><h2><span class="dot" style="background:var(--clay)"></span>我的剪辑笔记</h2>
+        <span class="more">${S.d.editNotes.length} 条</span></div>
+      <div class="fld"><label>标题 / 灵感来源（如某条技巧或某个视频）</label><input class="inp" id="etTitle" placeholder="例如：转场节奏 / @某某第 12 秒的卡点" /></div>
+      <div class="fld"><label>记下来的一点</label><textarea class="inp" id="etNote" placeholder="今天学到或想试的具体做法、坑、灵感……"></textarea></div>
+      <button class="btn block" data-act="saveEditNote">保存笔记 · +15 积分</button>
+      ${S.d.editNotes.length ? `<div style="margin-top:14px">${S.d.editNotes.slice().reverse().slice(0,6).map((s,i)=>
+        `<div class="bill"><div class="bill-e">📝</div>
+          <div class="bill-b"><h5>${esc(s.title||"无标题")}</h5><p>${esc(s.date)}</p></div>
+          <button class="lk" data-act="openEditNote" data-i="${S.d.editNotes.length-1-i}">查看</button></div>`).join("")}</div>` : ""}
     </div>`;
   }
 
@@ -319,6 +331,33 @@ window.ViewMedia = (function () {
       <div class="lesson-n" style="background:var(--mist-s);color:var(--mist);width:auto;padding:0 7px;border-radius:8px;font-size:10px">${esc(r.p)}</div>
       <div class="lesson-b"><p style="margin:0">${esc(r.v||"（未填写）")}</p></div></div>`).join("")
       + `<div class="scene-tip">✍️ 我能抄走的：${esc(s.take||"未填写")}</div>`);
+  });
+  UI.on("saveEditNote", ()=>{
+    const title = document.getElementById("etTitle").value.trim();
+    const note = document.getElementById("etNote").value.trim();
+    if(!title && !note) return UI.toast("写点什么再保存吧");
+    S.d.editNotes.push({ id:Date.now()+"", date:S.today(), title, note });
+    S.save(); S.addCoin(15,"剪辑笔记"); App.refresh();
+  });
+  UI.on("openEditNote", el=>{
+    const s = S.d.editNotes[Number(el.dataset.i)];
+    UI.sheet(esc(s.title||"无标题"), `
+      <div class="tiny" style="margin-bottom:10px;color:var(--ink-3)">📅 ${esc(s.date)}</div>
+      <div class="card tight" style="white-space:pre-wrap;line-height:1.8;font-size:13.5px;color:var(--ink-2)">${esc(s.note||"（没有正文）")}</div>
+      <button class="btn block soft" data-act="delEditNote" data-i="${el.dataset.i}" style="margin-top:14px">🗑 删除这条笔记</button>`);
+  });
+  UI.on("delEditNote", el=>{
+    const i = Number(el.dataset.i);
+    UI.sheet("删除这条剪辑笔记？", `
+      <p style="margin:0 0 16px;color:var(--ink-2);font-size:13.5px">删除后无法恢复，确定要删掉吗？</p>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost" data-act="closeSheet" style="flex:1">再想想</button>
+        <button class="btn" data-act="doDelEditNote" data-i="${i}" style="flex:1;background:#C0736F;border-color:#C0736F;color:#fff">确认删除</button>
+      </div>`);
+  });
+  UI.on("doDelEditNote", el=>{
+    const i = Number(el.dataset.i);
+    S.d.editNotes.splice(i,1); S.save(); UI.closeSheet(); App.refresh(); UI.toast("已删除");
   });
 
   return { render, afterRender };
