@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#F3F0EB" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="浅浅台" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>浅浅的工作台</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="assets/icon-192.png" type="image/png" />
+<link rel="apple-touch-icon" href="assets/icon-512.png" />
+<link rel="stylesheet" href="assets/css/app.css" />
+<script>
+  // 注册 Service Worker：让网站可被"安装"成独立 App（仅 http(s) 下生效，file:// 跳过）
+  if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
+</script>
+</head>
+<body>
+
+<div class="phone" id="phone">
+
+  <!-- ===== 顶部栏 ===== -->
+  <header class="topbar" id="topbar">
+    <div class="topbar-l">
+      <div class="avatar" id="avatar">浅</div>
+      <div class="topbar-txt">
+        <h1 id="topTitle">浅浅的工作台</h1>
+        <p id="topSub">今天也要慢慢变好呀</p>
+      </div>
+    </div>
+    <div class="topbar-r">
+      <button class="icon-btn" id="btnCoin" title="我的积分">
+        <span class="coin-dot"></span><span id="coinNum">0</span>
+      </button>
+      <button class="icon-btn" id="btnSetting" title="设置">⚙</button>
+    </div>
+  </header>
+
+  <!-- ===== 内容区 ===== -->
+  <main class="screen" id="screen"></main>
+
+  <!-- ===== 底部导航 ===== -->
+  <nav class="tabbar" id="tabbar">
+    <button class="tab active" data-tab="today">
+      <svg viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-11Z"/><path d="M8 3v3M16 3v3M4.5 9.5h15"/></svg>
+      <span>今日</span>
+    </button>
+    <button class="tab" data-tab="money">
+      <svg viewBox="0 0 24 24"><path d="M12 3v18M8 7h5.5a2.5 2.5 0 0 1 0 5H9a2.5 2.5 0 0 0 0 5H17"/></svg>
+      <span>理财</span>
+    </button>
+    <button class="tab" data-tab="learn">
+      <svg viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5v-13Z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5v-13Z"/></svg>
+      <span>学习</span>
+    </button>
+    <button class="tab" data-tab="life">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.6 9.5h16.8M3.6 14.5h16.8M12 3.5c2.5 2.6 2.5 14.4 0 17M12 3.5c-2.5 2.6-2.5 14.4 0 17"/></svg>
+      <span>生活</span>
+    </button>
+    <button class="tab" data-tab="media">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5-4.5-2.5Z"/></svg>
+      <span>创作</span>
+    </button>
+    <button class="tab" data-tab="muse">
+      <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-9 8.4 9 9 0 0 1-4-.9L3 21l1.9-5A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 21 11.5Z"/></svg>
+      <span>碎碎念</span>
+    </button>
+  </nav>
+
+  <!-- ===== 应用锁覆盖层 ===== -->
+  <div class="lock-layer" id="lockLayer"></div>
+
+  <!-- ===== 弹层 ===== -->
+  <div class="sheet-mask" id="sheetMask"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-bar"></div>
+    <div class="sheet-head"><h3 id="sheetTitle">标题</h3><button class="sheet-x" id="sheetClose">✕</button></div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/view-today.js"></script>
+<script src="assets/js/view-money.js"></script>
+<script src="assets/js/view-learn.js"></script>
+<script src="assets/js/view-life.js"></script>
+<script src="assets/js/view-media.js"></script>
+<script src="assets/js/view-muse.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
