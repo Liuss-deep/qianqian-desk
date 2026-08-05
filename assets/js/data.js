@@ -561,6 +561,17 @@ window.DB = (function () {
     ]
   };
 
+  /* ---------- 每日一句（8:30 推送）兜底 ---------- */
+  const fallbackWord = {
+    date:"", note:"这是内置占位。开启每日 8:30 自动推送后，这里会替换成当天的每日一句。",
+    item:{
+      type:"en-quote",
+      text:"Almost everything will work again if you unplug it for a few minutes — including you.",
+      author:"Anne Lamott",
+      zh:"你不是坏了，只是需要重启。"
+    }
+  };
+
   /* ---------- 股市 · 基础知识（零基础友好） ---------- */
   const stockBasics = [
     { t:"股票到底是什么", d:"公司把所有权切成很多小份卖出来筹钱，你买一股就是成了它的小股东。公司赚钱会分红，市场觉得它值钱时股价就涨。你赚的来自两部分：分红 + 股价涨跌。" },
@@ -668,7 +679,7 @@ window.DB = (function () {
 
   return { quotes, books, finance, finPath, cats, incomeCats, ieltsScenes, ieltsWords,
            listening, recipes, quests, badges, editTips, mediaPath, monetize,
-           scriptFrame, fallbackTrends, fallbackNews,
+           scriptFrame, fallbackTrends, fallbackNews, fallbackWord,
            stockBasics, stockMoves, stockNews, stockSources,
            podcasts, fallbackPodcasts,
            museTypes };

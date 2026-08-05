@@ -1,13 +1,10 @@
 {
   "date": "2026-08-05",
-  "note": "每天 08:00 自动更新。来自生活的小词 / 短句，覆盖中文和英文——捕捉一种「中文和英文都说不清、但大家都经历过」的情绪或瞬间。",
+  "note": "新的一天，先把脸转向光。",
   "item": {
     "type": "en-quote",
-    "q": "Almost everything will work again if you unplug it for a few minutes — including you.",
-    "src": "Anne Lamott",
-    "tag": "自我",
-    "line": "愿你也被这句话照顾到——「unplug it for a few minutes, including you」，几乎所有东西断电几分钟就会重新好起来，包括你。",
-    "story": "你今天可能会懂：路由器卡住了，拔掉电源等十秒再插上，它自己就好了。人其实也一样——不是坏掉了，只是连太久没断过电。所以今天允许自己关掉一会儿：不回消息、不安排、不解决任何事。等你回来，那些卡住的地方，往往就自己松开了。",
-    "sub": "你不是坏了，只是需要重启。"
+    "text": "Keep your face always toward the sunshine—and shadows will fall behind you.",
+    "author": "Walt Whitman",
+    "zh": "始终面向阳光，影子自会落在身后。"
   }
 }

@@ -84,6 +84,14 @@ window.ViewToday = (function () {
       }).join("")}
     </div>
 
+    <!-- 每日一句 -->
+    <div class="card">
+      <div class="sec-head">
+        <h2><span class="dot" style="background:#C9A27E"></span>每日一句 · 08:30 更新</h2>
+      </div>
+      <div id="phraseBox"><div class="empty">正在读取今日一句…</div></div>
+    </div>
+
     <!-- 每日新闻 -->
     <div class="card">
       <div class="sec-head">
@@ -273,6 +281,23 @@ window.ViewToday = (function () {
     const box = document.getElementById("newsBox");
     if(!box) return;
     if(!dailyData) dailyData = await S.fetchDaily();
+    // 每日一句
+    const pbox = document.getElementById("phraseBox");
+    if(pbox){
+      const w = dailyData.word || DB.fallbackWord;
+      const it = w.item || {};
+      let h = "";
+      if(w.date) h += `<div class="tiny" style="margin-bottom:8px;color:#8a8a85">📅 ${esc(w.date)} 推送</div>`;
+      if(it.type === "en-quote"){
+        h += `<div style="font-size:16px;line-height:1.7;font-weight:600;color:#3f3f3b">“${esc(it.text||"")}”</div>`;
+        if(it.author) h += `<div style="margin-top:8px;color:#C9A27E;font-size:13px">— ${esc(it.author)}</div>`;
+      } else if(it.text){
+        h += `<div style="font-size:17px;line-height:1.8;font-weight:600;color:#3f3f3b">${esc(it.text)}</div>`;
+      }
+      if(it.zh) h += `<div style="margin-top:10px;font-size:14px;line-height:1.7;color:#6e6e6a">${esc(it.zh)}</div>`;
+      if(w.note) h += `<div class="scene-tip" style="margin-top:10px">${esc(w.note)}</div>`;
+      pbox.innerHTML = h;
+    }
     const n = dailyData.news || DB.fallbackNews;
     const items = n.items || [];
     box.innerHTML = (n.date ? `<div class="tiny" style="margin-bottom:8px">📅 ${esc(n.date)} 推送</div>` : "")

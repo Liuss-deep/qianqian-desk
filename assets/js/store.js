@@ -33,6 +33,7 @@ window.S = (function () {
     newsCache: null,
     trendCache: null,
     podcastCache: null,
+    wordCache: null,
     podHeard: [],
     podWant: [],
     seedOffset: 0,
@@ -322,12 +323,26 @@ window.S = (function () {
         throw 0;
       }catch(e){ return d[cacheKey] || fb; }
     };
-    const [news, trend, podcast] = await Promise.all([
+    async function fetchWord(){
+      const sb = getSupa();
+      if(sb){
+        try{
+          const { data, error } = await sb.from("app_state").select("data").eq("id","daily_word").maybeSingle();
+          if(!error && data && data.data && data.data.item){
+            d.wordCache = data.data; save();
+            return data.data;
+          }
+        }catch(e){}
+      }
+      return await get("data/daily/word-latest.json","wordCache", DB.fallbackWord);
+    }
+    const [news, trend, podcast, word] = await Promise.all([
       get("data/daily/news-latest.json","newsCache", DB.fallbackNews),
       get("data/daily/trends-latest.json","trendCache", DB.fallbackTrends),
-      get("data/daily/podcasts-latest.json","podcastCache", DB.fallbackPodcasts)
+      get("data/daily/podcasts-latest.json","podcastCache", DB.fallbackPodcasts),
+      fetchWord()
     ]);
-    return { news, trend, podcast };
+    return { news, trend, podcast, word };
   }
 
   function reset(){ localStorage.removeItem(KEY); location.reload(); }
