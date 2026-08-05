@@ -1,0 +1,47 @@
+{
+  "name": "浅浅的工作台",
+  "short_name": "浅浅台",
+  "description": "每日待办、复盘、理财学习、阅读、雅思、食谱、新闻、地球Online与自媒体计划，为慢生活打造的莫兰迪工作台。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#F3F0EB",
+  "theme_color": "#F3F0EB",
+  "lang": "zh-CN",
+  "id": "/?source=pwa",
+  "categories": ["lifestyle", "productivity", "education"],
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
