@@ -104,7 +104,6 @@ window.App = (function () {
           <div class="kv"><span>08:00 平台热点</span><b style="color:var(--sage)">已配置</b></div>
           <div class="kv"><span>08:30 每日新闻</span><b style="color:var(--sage)">已配置</b></div>
           <div class="kv"><span>09:00 精选播客</span><b style="color:var(--sage)">已配置</b></div>
-          <div class="kv"><span>08:00 每日一句</span><b style="color:var(--sage)">已配置</b></div>
           <p class="tiny" style="line-height:1.8;margin:9px 0 0">助手会在这些时间点生成内容，写入
           <code style="font-size:10.5px">data/daily/</code> 下的 JSON 文件。App 每次打开会自动读取最新一份，读不到时使用本地缓存。播客在学习页「🎧 播客」里看。</p>
         </div>

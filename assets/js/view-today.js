@@ -2,8 +2,6 @@
 window.ViewToday = (function () {
   const { esc, ring } = UI;
   let dailyData = null;
-  let phraseOffset = 0;     // 用户点「换一句」时累加，跳出今天推送看别的
-  let phraseFetchedOnce = false;
 
   const WEEK = ["周日","周一","周二","周三","周四","周五","周六"];
   const MOODS = ["😌","🥰","😐","😮‍💨","🥲"];
@@ -50,14 +48,6 @@ window.ViewToday = (function () {
       ${quick("💰","记账","money")}
       ${quick("📖","阅读","learn")}
       ${quick("🍳","今日菜","life")}
-    </div>
-
-    <!-- 每日一句 · 08:00 推送（外语小词 / 中文短句 / 英文短句 都收） -->
-    <div id="phraseBox">
-      <div class="card" style="background:linear-gradient(135deg,#F2EBE2,#EDE4DA);border:1px solid var(--line-2)">
-        <div class="tiny" style="letter-spacing:1.6px;font-weight:700;color:var(--clay)">💎 每日一句 · 08:00 推送</div>
-        <div class="empty" style="padding:18px 0">正在读取今日推送…</div>
-      </div>
     </div>
 
     <!-- 待办 -->
@@ -292,82 +282,8 @@ window.ViewToday = (function () {
       </div>`).join("")
       + (n.note ? `<div class="scene-tip" style="margin-top:10px">${esc(n.note)}</div>` : "");
 
-    // 渲染「每日一句」卡片（也走 fetchDaily 拿当天 08:00 推送）
-    await renderPhraseBox();
   }
 
-  async function renderPhraseBox(){
-    const box = document.getElementById("phraseBox");
-    if(!box) return;
-    if(!phraseFetchedOnce){
-      phraseFetchedOnce = true;
-      await S.fetchDaily();
-    }
-    const wc = S.d.wordCache;
-    const lib = DB.phraseLibrary || [];
-    const today = S.ymd();
-    // 只有"今天"的推送才优先展示；否则按日期从词库确定性轮转，保证每天不同、不重复昨天
-    const hasTodayPush = !!(wc && wc.item && wc.date === today);
-    // 偏移：用 dayNum + offset 在库内取别的，保证每次不同
-    const offsetIdx = (S.dayNum() + phraseOffset) % lib.length;
-    const cur = (phraseOffset === 0)
-      ? (hasTodayPush ? wc.item : lib[offsetIdx])
-      : lib[offsetIdx];
-    const seen = S.d.wordSeen || [];
-    const isWord = cur.type === "word";
-    const isEnQuote = cur.type === "en-quote";
-    // 短句用 quote+src+line 唯一标识；小词用 w
-    const key = isWord ? cur.w : (cur.q || cur.line);
-    const isSeen = isWord && seen.includes(cur.w);
-    const dateLine = (phraseOffset === 0 && hasTodayPush)
-      ? `<div class="tiny" style="text-align:center;margin-top:9px">📅 ${esc(wc.date)} 推送</div>` : "";
-
-    let head;
-    if(isWord){
-      head = `<div style="text-align:center;padding:18px 6px 6px">
-        <div style="font-size:36px;font-weight:700;color:var(--ink);letter-spacing:1.5px;line-height:1.15">${esc(cur.w)}</div>
-        <div class="tiny" style="margin-top:7px;color:var(--ink-3);letter-spacing:1px">${esc(cur.p||"")}</div>
-        <div style="margin-top:9px;display:inline-block;padding:3px 11px;border-radius:20px;background:var(--clay-s);color:var(--clay);font-size:11.5px;font-weight:600">${esc(cur.lang)} · ${esc(cur.tag)}</div>
-      </div>`;
-    } else if(isEnQuote){
-      // 英文短句：原句英文 + 出处（英文/作家）+ 主题标签
-      head = `<div style="text-align:center;padding:20px 14px 8px">
-        <div style="font-size:18px;font-weight:600;color:var(--ink);line-height:1.55;letter-spacing:.3px;font-style:italic">${esc(cur.q)}</div>
-        ${cur.src?`<div class="tiny" style="margin-top:10px;color:var(--ink-3);letter-spacing:.8px">— ${esc(cur.src)}</div>`:""}
-        <div style="margin-top:11px;display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center">
-          <span style="padding:3px 9px;border-radius:20px;background:#E8EFF5;color:#4F6E8C;font-size:10.5px;font-weight:700;letter-spacing:1.2px">EN</span>
-          <span style="padding:3px 11px;border-radius:20px;background:var(--clay-s);color:var(--clay);font-size:11.5px;font-weight:600">${esc(cur.tag||"短句")}</span>
-        </div>
-      </div>`;
-    } else {
-      // 中文短句：用"原句 + 出处"作为主视觉
-      head = `<div style="text-align:center;padding:20px 14px 8px">
-        <div style="font-size:18px;font-weight:600;color:var(--ink);line-height:1.55;letter-spacing:.3px">${esc(cur.q)}</div>
-        ${cur.src?`<div class="tiny" style="margin-top:10px;color:var(--ink-3);letter-spacing:.8px">— ${esc(cur.src)}</div>`:""}
-        <div style="margin-top:11px;display:inline-block;padding:3px 11px;border-radius:20px;background:var(--clay-s);color:var(--clay);font-size:11.5px;font-weight:600">${esc(cur.tag||"短句")}</div>
-      </div>`;
-    }
-
-    box.innerHTML = `
-      <div class="card" style="background:linear-gradient(135deg,#F2EBE2,#EDE4DA);border:1px solid var(--line-2)">
-        <div class="tiny" style="letter-spacing:1.6px;font-weight:700;color:var(--clay)">💎 每日一句 · 08:00 推送</div>
-        ${head}
-        <div style="margin:14px 6px 0;font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.65;text-align:center">${esc(cur.line)}</div>
-        <div class="de" style="margin:14px 4px 0;line-height:1.85;color:var(--ink-2)">${esc(cur.story||"")}</div>
-        ${cur.sub ? `<div class="scene-tip" style="margin-top:12px;background:var(--clay-s);color:#8C7158">✿ ${esc(cur.sub)}</div>` : ""}
-        <div style="display:flex;gap:8px;margin-top:14px">
-          <button class="btn ${isSeen?"soft":""}" data-act="phraseGot" data-key="${esc(key)}" data-w="${esc(cur.w||"")}" style="flex:1.4">${isSeen?"今日已记下 ✓":"我记住了 · +5"}</button>
-          <button class="btn ghost" data-act="phraseNext" style="flex:1">换一句 ›</button>
-        </div>
-        <div style="margin-top:11px;display:flex;justify-content:center;gap:14px">
-          <a class="lk" data-act="openPhrases">查看全部 ${lib.length} 条</a>
-          <a class="lk" data-act="refreshPhrase">↻ 拉取最新推送</a>
-        </div>
-        ${dateLine}
-      </div>
-      <div class="scene-tip" style="margin-top:10px">💡 提示：今天这句话如果打动你，点「我记住了」记一下；想再读一句就点「换一句」，也能从「学习·词库」翻全部收录。</div>
-    `;
-  }
 
   /* ---------- 事件 ---------- */
   UI.on("addTodo", ()=>{
@@ -420,54 +336,6 @@ window.ViewToday = (function () {
     arr.push(name); S.save(); S.addCoin(Number(el.dataset.p), name); App.refresh();
   });
 
-  /* ---------- 每日一句 事件 ---------- */
-  UI.on("phraseGot", el=>{
-    const w = el.dataset.w;            // 小词 key（=w）
-    const key = el.dataset.key;        // 短句 key（=q 或 line）
-    S.d.wordSeen = S.d.wordSeen || [];
-    // 已经记过的判断：以 w 为主，key 兜底
-    if(w && S.d.wordSeen.includes(w)) return UI.toast("今天已经记下啦");
-    if(key && S.d.wordSeen.includes(key)) return UI.toast("今天已经记下啦");
-    // 入账
-    if(w) S.d.wordSeen.push(w);
-    else if(key) S.d.wordSeen.push(key);
-    S.save(); S.addCoin(5,"记住了每日一句"); App.refresh();
-  });
-  UI.on("phraseNext", ()=>{ phraseOffset++; App.refresh(); });
-  UI.on("refreshPhrase", async ()=>{ phraseFetchedOnce=false; UI.toast("拉取中…"); await S.fetchDaily(); App.refresh(); });
-  UI.on("openPhrases", ()=>{
-    const seen = S.d.wordSeen || [];
-    const list = DB.phraseLibrary || [];
-    UI.sheet("词库（"+list.length+" 条 · 含中英文）", list.map(p=>{
-      const isWord = p.type === "word";
-      const isEnQuote = p.type === "en-quote";
-      const isSeen = isWord && seen.includes(p.w);
-      let head;
-      if(isWord){
-        head = `<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-             <b style="font-size:14.5px">${esc(p.w)}</b>
-             <span class="pill" style="background:var(--clay-s);color:var(--clay);font-size:10.5px">${esc(p.lang)}</span>
-             <span class="tiny" style="color:var(--ink-3)">${esc(p.tag)}</span>
-             ${isSeen?'<span class="pill" style="background:var(--sage-s);color:var(--sage);font-size:10.5px">已记</span>':""}
-           </div>
-           <div class="tiny" style="margin-top:3px">${esc(p.p)}</div>
-           <div style="font-size:12.5px;line-height:1.7;margin-top:5px;color:var(--ink-2)">${esc(p.line)}</div>`;
-      } else if(isEnQuote){
-        head = `<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-             <b style="font-size:13.5px;line-height:1.5;font-style:italic">${esc(p.q)}</b>
-             <span class="pill" style="background:#E8EFF5;color:#4F6E8C;font-size:10.5px;letter-spacing:1.2px;font-weight:700">EN</span>
-             <span class="tiny" style="color:var(--ink-3)">${esc(p.tag)}</span>
-           </div>
-           ${p.src?`<div class="tiny" style="color:var(--ink-3);margin-top:2px">— ${esc(p.src)}</div>`:""}
-           <div style="font-size:12.5px;line-height:1.7;margin-top:6px;color:var(--ink-2)">${esc(p.line)}</div>`;
-      } else {
-        head = `<b style="font-size:13.5px;line-height:1.5">${esc(p.q)}</b>
-           ${p.src?`<div class="tiny" style="color:var(--ink-3);margin-top:2px">— ${esc(p.src)}</div>`:""}
-           <div style="font-size:12.5px;line-height:1.7;margin-top:6px;color:var(--ink-2)">${esc(p.line)}</div>`;
-      }
-      return `<div class="kv" style="align-items:flex-start;padding:9px 0">${head}</div>`;
-    }).join(""));
-  });
 
   /* ---------- 复盘归档 / 回顾 ---------- */
   UI.on("openAllReviews", ()=>{

@@ -324,28 +324,12 @@ window.S = (function () {
         throw 0;
       }catch(e){ return d[cacheKey] || fb; }
     };
-    // 每日一句：优先从 Supabase 读取（复用已建的 app_state 表，行 id='daily_word'），
-    // 联网即拿到最新，不受静态托管快照 / 单文件内嵌缓存影响。失败再退回本地文件 / 内嵌。
-    async function fetchWord(){
-      const sb = getSupa();
-      if(sb){
-        try{
-          const { data, error } = await sb.from("app_state").select("data").eq("id","daily_word").maybeSingle();
-          if(!error && data && data.data && data.data.item){
-            d.wordCache = data.data; save();
-            return data.data;
-          }
-        }catch(e){}
-      }
-      return await get("data/daily/word-latest.json","wordCache", DB.fallbackWord);
-    }
     const [news, trend, podcast] = await Promise.all([
       get("data/daily/news-latest.json","newsCache", DB.fallbackNews),
       get("data/daily/trends-latest.json","trendCache", DB.fallbackTrends),
       get("data/daily/podcasts-latest.json","podcastCache", DB.fallbackPodcasts)
     ]);
-    const word = await fetchWord();
-    return { news, trend, podcast, word };
+    return { news, trend, podcast };
   }
 
   function reset(){ localStorage.removeItem(KEY); location.reload(); }

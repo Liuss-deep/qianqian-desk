@@ -278,7 +278,7 @@ window.ViewLearn = (function () {
     </div>`;
   }
 
-  /* ---------- 词库入口（每日一句已搬到「今日」页，这里只做浏览） ---------- */
+  /* ---------- 词库入口（小词 & 短句浏览） ---------- */
   function phraseLibCard(){
     const list = DB.phraseLibrary || [];
     const seen = S.d.wordSeen || [];
@@ -289,7 +289,7 @@ window.ViewLearn = (function () {
         <h2><span class="dot" style="background:var(--clay)"></span>词库 · 短句 & 小词</h2>
         <span class="more" data-act="allPhrases">全部 ${list.length} 条 ›</span>
       </div>
-      <p class="tiny" style="line-height:1.8;margin:0 0 10px">每天 12:30 自动推送一条。「每日一句」已搬到「今日」页打开就能看到。这里是全部收录：跨文化的小词和短句，慢慢翻，慢慢记。</p>
+      <p class="tiny" style="line-height:1.8;margin:0 0 10px">这里收录了跨文化的小词和短句，慢慢翻，慢慢记。</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         ${sample.map(p=>`<div style="background:var(--card-2);border-radius:11px;padding:10px 11px">
           <div style="font-weight:670;font-size:13px">${esc(p.type==="quote"?(p.q||"").slice(0,18)+( (p.q||"").length>18?"…":"" ):p.w)}</div>
