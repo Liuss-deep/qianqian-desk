@@ -558,7 +558,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 /* ============ 浅浅的工作台 · 内容库 ============ */
 window.DB = (function () {
 
-  /* ---------- 每日一句 ---------- */
+  /* ---------- 随机赠言（今日页轻量展示） ---------- */
   const quotes = [
     "把今天过好，就是对未来最好的交代。",
     "慢一点没关系，方向对了就不算慢。",
@@ -1222,369 +1222,12 @@ window.DB = (function () {
     ]
   };
 
-  /* ---------- 今日一词 · 跨文化小词库（截图同款调性） ----------
-     每条：w(原词) p(发音) lang(语言/国) tag(主题)
-           line(开场一句话，截图同款：「祝我们都有...时刻。」)
-           story(详细解读，1–2 段) */
-  const wordLibrary = [
-    { w:"Sobremesa", p:"so·bre·ME·sa", lang:"西班牙语", tag:"餐后",
-      line:"祝我们都有 Sobremesa 时刻。",
-      story:"一个英语和中文都翻译不出来的西语单词。它指的是「享用完美食之后，大家继续留在桌边谈天说笑的轻快时刻」。没有赶着收拾，没有急着去看手机，只是还坐在那里，把这段饭后的时间，过成生活本身。",
-      sub:"家、饭桌、说废话——是日子里最值得记住的几样东西。" },
-
-    { w:"Hygge", p:"HOO·ga", lang:"丹麦语", tag:"生活",
-      line:"祝我们都能找到自己的 hygge。",
-      story:"丹麦人用来形容「那种被毛毯、烛光、热饮、关心你的人包裹着的、舒服到不想起身的当下」。它不是奢华，而是一种「在小事里为自己点一盏灯」的能力。",
-      sub:"不需要远方，一杯热可可 + 一盏暖灯 = 完整的 hygge。" },
-
-    { w:"Komorebi", p:"ko·mo·RE·bi", lang:"日语", tag:"自然",
-      line:"祝我们都别错过今天的 komorebi。",
-      story:"汉字里没有对应的词。指「阳光透过树叶缝隙、在地面洒下的那种晃动的光斑」。它短暂、轻盈、稍纵即逝，所以日本人才专门为它造了一个名字——好让你在路过时，能抬头看一眼。",
-      sub:"不一定是晴天，斑驳的光本身就是一种温柔。" },
-
-    { w:"Saudade", p:"sau·DA·de", lang:"葡萄牙语", tag:"情感",
-      line:"愿我们的 saudade，永远只是轻轻的。",
-      story:"一个用来形容「对已经失去或还没到来的事物，所感到的那种温柔的、带着甜的忧伤」的字。它不是简单的「想念」，比想念更复杂——里面有心疼、有感谢、还有一点点甘愿。",
-      sub:"会想一个人、会想一个地方、会想一段回不去的时光，都是 saudade。" },
-
-    { w:"Wabi-sabi", p:"WA·bi SA·bi", lang:"日语", tag:"审美",
-      line:"祝我们都能爱上 wabi-sabi。",
-      story:"在不完美里看见美。裂开的茶壶、生锈的铁器、晒褪色的窗帘、眼角的第一道细纹——wabi-sabi 教我们：时间留下的痕迹，本身就是最动人的部分。",
-      sub:"完整是暂时的，留白和磨损才是常态。" },
-
-    { w:"Meraki", p:"ME·ra·ki", lang:"希腊语", tag:"创作",
-      line:"祝我们做事时，都带着 meraki。",
-      story:"把「自己的一部分灵魂」放进你所做的事情里——做饭、写字、做手帐、剪视频、回一条消息。希腊人说：看一个人 meraki 不 meraki，看他做的东西就知道了。",
-      sub:"敷衍和用心，作品自己会说话。" },
-
-    { w:"Mamihlapinatapai", p:"ma·mi·HLA·pi·na·TA·pai", lang:"雅甘语（南美）", tag:"情感",
-      line:"祝我们都遇见那个 mamihlapinatapai 的人。",
-      story:"这个词被语言学家称为「人类语言中最美的词」。它描述两个人彼此都想做某件事、都望向对方、却都没有开口的那一瞬间。一个眼神里就懂了的默契。",
-      sub:"不必说破，也是全部。" },
-
-    { w:"Gigil", p:"GI·gil", lang:"菲律宾语", tag:"生活",
-      line:"祝我们偶尔都有一份 gigil。",
-      story:"看到太可爱的东西时那种「想捏一捏、揉一揉、紧紧抱住」的冲动。是猫咪肉垫、婴儿小手、朋友刚出炉的烤曲奇——所有让你忍不住想上手的瞬间。",
-      sub:"生活里那些小可爱，值得我们专门造一个词。" },
-
-    { w:"Tsundoku", p:"TSUN·do·ku", lang:"日语", tag:"生活",
-      line:"祝我们都有温和的 tsundoku。",
-      story:"买书如山、却还没读完堆在角落的状态。这个词没有贬义——它甚至带着一点温柔的自我调侃：我愿意为「未来某个想要认真读书的自己」先备好这些。",
-      sub:"想读 ≠ 已读，买了就是开始。" },
-
-    { w:"Querencia", p:"ke·REN·cia", lang:"西班牙语", tag:"归属",
-      line:"祝我们都能找到自己的 querencia。",
-      story:"一个你「可以完全做回自己」的地方。可以是家里的一张旧沙发、一家常去的咖啡馆、一片常走的小路——那个让你身体自然放松、声音自然变小的地方。",
-      sub:"不是去远方，而是回到让你安心的角落。" },
-
-    { w:"Duende", p:"DU·en·de", lang:"西班牙语", tag:"艺术",
-      line:"愿我们都被一些 duende 击中过。",
-      story:"听一首老歌、看一场日落、读一段句子——心里忽然「咯噔」一下，那种颤栗。西班牙人把这个叫 duende：一种来自深处的、让人屏住呼吸的共鸣。",
-      sub:"不是感动，是被震了一下。" },
-
-    { w:"Petrichor", p:"PET·ri·kor", lang:"英语", tag:"自然",
-      line:"祝我们记得，下雨天的味道。",
-      story:"长期干旱的土地被第一场雨浸润时，泥土和雨水混合散发出的那股清新气息。科学家专门给它起了名——因为它太让人安心了。",
-      sub:"小时候赤脚踩水坑的快乐，就是 petrichor。" },
-
-    { w:"Mono no aware", p:"MO·no no a·WA·re", lang:"日语", tag:"情感",
-      line:"祝我们都有感受 mono no aware 的能力。",
-      story:"樱花会落、夏天会走、孩子会长大、我们也会变老——因「万物皆有期限」而生出的那一丝温柔哀愁。日本人说：能感受到这个的人，才算真正在过日子。",
-      sub:"不是丧，是看得见美好的同时也看得见它的消失。" },
-
-    { w:"Ubuntu", p:"u·BUN·tu", lang:"南非祖鲁语", tag:"关系",
-      line:"祝我们都活在一份 ubuntu 里。",
-      story:"直译是「我之所以为我，因为我们都在」。强调一个人不是孤岛，是「被看见、被需要、也被别人成全」的总和。",
-      sub:"我们都是彼此的来处和归处。" },
-
-    { w:"Apricity", p:"a·PRI·ci·ty", lang:"英语", tag:"季节",
-      line:"祝我们都有一份 apricity。",
-      story:"冬天里那一缕难得的阳光照在脸上的暖意。古英语传下来的词，现代人几乎用不到，但天气越冷越想念它。",
-      sub:"冷的时候，能晒到太阳就是一件大事。" },
-
-    { w:"Cafuné", p:"ka·fu·NÉ", lang:"巴西葡萄牙语", tag:"亲密",
-      line:"祝我们都被温柔地 cafuné 过。",
-      story:"用手指缓缓穿过某人的头发。巴西人专门造了一个词来描述这种动作——因为它太温柔、太日常、也太难用其他语言说清楚。",
-      sub:"被爱最具体的证据之一。" },
-
-    { w:"Limerence", p:"LI·me·rence", lang:"英语", tag:"情感",
-      line:"祝我们偶尔还能体验一次 limerence。",
-      story:"心动最早期那种「忍不住一直想一个人、见到就大脑一片空白」的状态。心理学家说它会过去——但它存在过这件事本身，就足够让人回味很久。",
-      sub:"清醒的爱情里，偶尔也值得为心跳留一席。" },
-
-    { w:"Vellichor", p:"VEL·li·chor", lang:"英语", tag:"场所",
-      line:"愿我们都能在 vellichor 里待一下午。",
-      story:"走进一家旧书店时那种「被很多故事轻轻抱住」的感觉。木书架、旧纸张、不知道藏了多少年的句子——时间在那样的地方变得很慢。",
-      sub:"不是为了买书，只是想被那种气氛包一会儿。" },
-
-    { w:"Onism", p:"O·nism", lang:"英语", tag:"自我",
-      line:"承认 onism，也是和世界和解的一种方式。",
-      story:"意识到自己「只能在一个身体、一个地方、一段时间里活着」的遗憾——这个世界这么多风景，我只能看一点点。",
-      sub:"遗憾是真实的，但也因此每一个当下更值得认真。" },
-
-    { w:"Iktsuarpok", p:"IKT·su·ar·pok", lang:"因纽特语", tag:"情感",
-      line:"愿等你的 iktsuarpok，总有个好的结果。",
-      story:"等一个重要的人来时，反复走到门口探头张望、心跳跟着每一声脚步起落的那个状态。",
-      sub:"最磨人的不是等本身，是不知道等来的是什么。" },
-
-    { w:"Backpfeifengesicht", p:"BACK·pfei·fen·ge·SI·Cht", lang:"德语", tag:"幽默",
-      line:"祝我们身边少一些 backpfeifengesicht。",
-      story:"一张让人想「啪」地拍一下的脸。德语造了一个长达 20 个字母的词来描述这种冲动——因为德国人觉得这事太常见，必须为它正名。",
-      sub:"严肃语言学 + 真实生活痛点 = 德语。" },
-
-    { w:"Sólfarfríður", p:"SOL·far·FRI·ður", lang:"冰岛语", tag:"季节",
-      line:"祝我们都有属于自己版本的 sólfarfríður。",
-      story:"冰岛人对「晴天」的称呼。在那个一年大多时间风雪交加的地方，每一个放晴的日子都珍贵到值得有一个专门的名字。",
-      sub:"普通的好天气，对被冬天关了很久的人来说，就是奇迹。" },
-
-    { w:"Litost", p:"LI·tost", lang:"捷克语", tag:"情感",
-      line:"愿我们能穿越自己的 litost。",
-      story:"米兰·昆德拉反复用过的词：突然看见自己可怜的处境时，那一阵「又心疼自己又气自己」的刺痛感。",
-      sub:"承认这一刻的难受，比装作没事更接近成熟。" },
-
-    { w:"Hiraeth", p:"HI·raeth", lang:"威尔士语", tag:"归属",
-      line:"愿我们都有一个回得去的地方。",
-      story:"一种对「回不去的家乡，或者从未真正存在过的家乡」的思念。比怀旧还多一层淡淡的哀伤——怀念的常是想象中那个地方。",
-      sub:"有时候，我们想念的不是某个地方，是某个版本的自己。" },
-
-    { w:"Kenopsia", p:"ke·NOP·si·a", lang:"英语", tag:"场所",
-      line:"允许自己偶尔 kenopsia。",
-      story:"走进一个「本应很热闹但此刻空无一人」的地方，那种古怪的、像被按下暂停键的氛围。空教室、闭馆后的博物馆、凌晨三点的便利店。",
-      sub:"不是孤独，是一种被时间暂停的瞬间。" },
-
-    { w:"Weltschmerz", p:"VELT·schmerz", lang:"德语", tag:"情感",
-      line:"愿你的 weltschmerz，永远不压垮你。",
-      story:"对世界现状的悲伤与无力感——明明不是自己的问题，却会跟着难受。歌德造了这个词，是因为他也曾这样。",
-      sub:"心软不是弱点，是看世界看得真。" }
-  ];
-
-  /* 英文小词库：与原 wordLibrary 同结构（w / p / lang / tag / line / story / sub），
-     lang 全部标记「英语」。渲染时和原词库走同一支逻辑。 */
-  const enWordLibrary = [
-    { w:"Bittersweet", p:"BIT·ter·sweet", lang:"英语", tag:"情感",
-      line:"愿你都能接住生命中那些 bittersweet 的瞬间。",
-      story:"同一时刻里又甜又苦、却无法拆开来看的感受——毕业典礼、机场送别、第一次独居的第一顿饭。苦是真的，甜也是真的。",
-      sub:"不拆开，也是一种完整。" },
-
-    { w:"Serendipity", p:"se·REN·di·pi·ty", lang:"英语", tag:"生活",
-      line:"愿你常被 serendipity 照看。",
-      story:"意外地发现一件极好的事——原本没想要、却恰好来到面前的那份惊喜。最好的旅行、最好的相遇、最好的灵感，常常都长这样。",
-      sub:"不设目标的时候，命运反而有迹可循。" },
-
-    { w:"Sonder", p:"SON·der", lang:"英语", tag:"自我",
-      line:"愿你在 sonder 里温柔一点。",
-      story:"你走过的每一个陌生人，都有和你一样复杂的、滚烫的、说不出口的人生。地铁里低头的人、咖啡店擦桌子的店员、外卖小哥——每一个都正在过自己完整的一天。",
-      sub:"你看到的只是别人生活的封面。" },
-
-    { w:"Halcyon", p:"HAL·cy·on", lang:"英语", tag:"季节",
-      line:"愿你有一段 halcyon 的日子。",
-      story:"金色、平静、被阳光和风轻轻照顾的某个下午——希腊神话里神鸟停下的那几天，风浪都会自己停。",
-      sub:"不是没有风，是你刚好在风眼里。" },
-
-    { w:"Eudaimonia", p:"eu·dai·MO·ni·a", lang:"英语", tag:"生活",
-      line:"愿你渐渐活出 eudaimonia。",
-      story:"亚里士多德造的词：不是短暂的快乐，是「一个人活出他最好的样子」那种持续、深、稳的满足。比 happiness 更厚，比 success 更轻。",
-      sub:"幸福是瞬间，活出自己是动词。" },
-
-    { w:"Iridescent", p:"i·ri·DES·cent", lang:"英语", tag:"审美",
-      line:"愿你身上常有一些 iridescent 的光。",
-      story:"那种会随着角度变化、泛出彩虹色的光泽——雨后路面的油膜、贝壳的内壁、刚洗过的头发在阳光下。看见一次，眼睛会松一下。",
-      sub:"最好的美，常常是借来的光。" },
-
-    { w:"Mellifluous", p:"mel·LI·flu·ous", lang:"英语", tag:"审美",
-      line:"愿你常被一些 mellifluous 的声音接住。",
-      story:"像蜂蜜一样流进耳朵的声音——雨打在窗上、某人说话的尾音、某首老歌的副歌。这种词不是用来用的，是用来收藏的。",
-      sub:"耳朵也需要被温柔对待。" },
-
-    { w:"Ineffable", p:"in·EF·fa·ble", lang:"英语", tag:"情感",
-      line:"愿你常常遇到 ineffable。",
-      story:"好到说不出、不能用任何语言代替的那种感受——站在山顶的那一刻、看见某人笑的那一秒、一口刚好的茶。",
-      sub:"说不出，就好好收着。" },
-
-    { w:"Efflorescence", p:"ef·flo·RES·cence", lang:"英语", tag:"自然",
-      line:"愿你正在自己的 efflorescence 里。",
-      story:"从内部慢慢绽开的过程——花开、墙上的盐花、人在某个清晨忽然想通一件事。这种生长安静，但会改变形状。",
-      sub:"不是所有的开，都看得见。" },
-
-    { w:"Susurrus", p:"su·SUR·rus", lang:"英语", tag:"自然",
-      line:"愿你记得去听一次 susurrus。",
-      story:"风吹过树叶的细碎沙沙声、林间草地的低语、远处海浪拍岸的回声。拉丁文「低语」的意思。世界这种不需要翻译的轻响，比任何话都治愈。",
-      sub:"安静里，藏着大部分的解药。" }
-  ];
-
-  /* 英文短句库：与 quoteLibrary 同结构（type:\"en-quote\" / q / src / line / story / sub），
-     调性：温暖、安静、有画面感，多和中文短句错开不同向度。
-     src 用作家或匿名（Original）。 */
-  const enQuoteLibrary = [
-    { type:"en-quote",
-      q: `Slow down, you're doing fine.`,
-      src: `Original`,
-      line: `愿你今天慢一点也没关系。`,
-      story: `焦虑最常说的话是「再快一点、再多做一点」。但你做的已经够多、走得已经够远——你只是忘了停下来确认一下。慢一点，世界不会因此关上门。`,
-      sub: `走得稳，比走得快更了不起。` },
-
-    { type:"en-quote",
-      q: `Be patient with yourself. Nothing in nature blooms all year.`,
-      src: `Anonymous`,
-      line: `愿你对自己多一点耐心。`,
-      story: `没有任何一棵树会责怪自己冬天不开花。状态好的时候发力，状态低的时候蓄力——这不是偷懒，是跟着自己的节律在走。`,
-      sub: `枯枝期，也是生长的一部分。` },
-
-    { type:"en-quote",
-      q: `You are allowed to be both a masterpiece and a work in progress, simultaneously.`,
-      src: `Sophia Bush`,
-      line: `愿你接受「既完成、也未完成」的自己。`,
-      story: `不必等「变得够好」再出发，也不必假装「已经很完美」。此刻的你，已经是过去所有努力的总和——但也确实还在写。这种「同时在」的状态，就是真实的人生。`,
-      sub: `进行时，也是一种完成时。` },
-
-    { type:"en-quote",
-      q: `The only way out is through.`,
-      src: `Robert Frost`,
-      line: `愿你相信：走得过去。`,
-      story: `这一句不讲方法、不卖鸡汤——它只是很诚实地告诉你：回避不会让事情消失，但只要穿过去，它就真的成了「过去」。`,
-      sub: `前面看着难的部分，常常就是出口。` },
-
-    { type:"en-quote",
-      q: `What you seek is seeking you.`,
-      src: `Rumi`,
-      line: `愿你等的那个答案，正在找你。`,
-      story: `鲁米的这一句很美：你想要的生活、想成为的人、想明白的事——它们并不是要你到处追，而是你一抬头，它们其实已经在路上了。`,
-      sub: `别走丢了就行。` },
-
-    { type:"en-quote",
-      q: `Almost everything will work again if you unplug it for a few minutes — including you.`,
-      src: `Anne Lamott`,
-      line: `愿你允许自己短暂「断电」一下。`,
-      story: `电脑卡了就重启，人卡了也一样——离开手机、离开工作群、离开那些「应该再努力一点」的念头，让自己真正地空一会儿。世界不会因为你停下来就崩塌。`,
-      sub: `你不是机器，请好好休息。` }
-  ];
-
-  /* 短句库（中文为主，含少量外文短句）：来自生活的、跨文化的、让人心里一动的话。
-     调性：温暖、安静、有画面感。短句为主，节奏慢。
-     字段：type:"quote" / q(原句) / src(出处，可省略)
-            line(开场一句话，必须以「祝/愿」开头)
-            story(详细解读，1–2 段)
-            sub(更轻的总结一句) */
-  const quoteLibrary = [
-    { type:"quote",
-      q: `做你自己，然后去承受你为个性付出的代价和收到的礼物。`,
-      src: `蓡蓡_Yomi 的微博`,
-      line: `愿你敢做自己。`,
-      story: `做自己从来不是一个一次性决定，是日复一日的「我还是要这样」。有人会因为你和别人不一样而喜欢你，也有人会因此远离你——这两份都是你应得的。`,
-      sub: `代价是真实存在的，但礼物也是。` },
-
-    { type:"quote",
-      q: `在喜欢你的人那里去热爱生活，在不喜欢你的人那里去看清世界。`,
-      src: `村上春树`,
-      line: `愿你身边都是让你更想好好过日子的人。`,
-      story: `不必强求所有人都懂你，但要知道「懂你的」和「不消耗你的」分别在哪里。把时间花在让你舒展的人和事上，世界就会慢慢变成你想要的样子。`,
-      sub: `温柔是一种筛选，也是一种自我保护。` },
-
-    { type:"quote",
-      q: `愿你慢慢长大，愿你活成自己想要的样子。`,
-      src: `改编自《你好，旧时光》`,
-      line: `愿我们都能慢慢长成自己。`,
-      story: `不是变成「应该」的样子，是变成「想要」的样子。允许走弯路，允许试错，允许某一刻暂时不知道要什么——这些都是「长成」的证据。`,
-      sub: `慢一点，没关系。` },
-
-    { type:"quote",
-      q: `所谓自由，不是想做什么就做什么，而是你不想做什么就可以不做什么。`,
-      src: `康德（通俗化翻译）`,
-      line: `愿你拥有「不必」的自由。`,
-      story: `比起「我能做」，更难也更重要的是「我可以不做」。是能拒绝一份不想赴的约、一段消耗自己的关系、一件你根本不想接的事。`,
-      sub: `自由不是选项多，是「不必」多。` },
-
-    { type:"quote",
-      q: `你不必活成任何人期待的样子，也包括你自己从前的期待。`,
-      src: null,
-      line: `愿你和每一个阶段的自己，都好好相处。`,
-      story: `过去的自己会想象未来的自己，但未来的自己永远比想象的要复杂、也要真实得多。允许今天的自己推翻昨天想成为的那种人。`,
-      sub: `成长不是一路向上，是不断重写答案。` },
-
-    { type:"quote",
-      q: `凡是过往，皆为序章。`,
-      src: `莎士比亚《暴风雨》`,
-      line: `愿过去的每一段，都成为你下一篇的开头。`,
-      story: `结束的不一定是坏事——一次离别、一段失败、一段不再适合的友谊——它们都在为接下来还没写下的内容腾地方。`,
-      sub: `今天是你余生的第一天。` },
-
-    { type:"quote",
-      q: `人生没有白走的路，每一步都算数。`,
-      src: `李宗盛`,
-      line: `愿你不会后悔走过的路。`,
-      story: `有些弯路当时觉得浪费，几年后回头看才发现那一步至关重要。重要的不是「快」，是「是」——你走过的，就是你的一部分。`,
-      sub: `但如果还在走，那就继续。` },
-
-    { type:"quote",
-      q: `愿你出走半生，归来仍是少年。`,
-      src: `苏轼《定风波》`,
-      line: `愿你归来时，眼睛还是亮的。`,
-      story: `不是不长大，是不放弃好奇、不放弃被小事打动、不放弃相信一些朴素的东西。见过世界还能保有天真，是很难得的事。`,
-      sub: `成熟不是变得世故，是变得柔软。` },
-
-    { type:"quote",
-      q: `在能力范围内给自己最好的，在欲望范围内给自己最克制的。`,
-      src: null,
-      line: `愿你既不亏待自己，也不为难自己。`,
-      story: `这一代人的功课不是「省钱」，是「不被消费主义推着走」。同时也不要为了「极致理性」委屈掉生活里那一点「我喜欢」。`,
-      sub: `懂分寸，是成年人的体面。` },
-
-    { type:"quote",
-      q: `我们读所有书，最终都是为了读自己。`,
-      src: `改编自博尔赫斯`,
-      line: `愿你读过的每一行字，都帮你多懂自己一点。`,
-      story: `我们会被某句话击中，常常不是因为它「说得漂亮」，而是因为它说出了自己一直模糊感受但没敢说出来的东西。`,
-      sub: `好书不是别人的答案，是你的镜子。` },
-
-    { type:"quote",
-      q: `一个人知道自己为什么而活，就可以忍受任何一种生活。`,
-      src: `尼采`,
-      line: `愿你找到一个值得你「忍」的事。`,
-      story: `这句话不是要我们去忍苦，是说：当你心里有「为了什么」的时候，所有的难都会被赋予意义。没有「为什么」的顺境，反而会让人塌掉。`,
-      sub: `意义是比快乐更稳的燃料。` },
-
-    { type:"quote",
-      q: `愿你被这个世界温柔以待，也愿你温柔地对待这个世界。`,
-      src: null,
-      line: `愿我们都能温柔待人，也被温柔以待。`,
-      story: `温柔不是软弱，是知道别人也和自己一样会累、会怕、会失望之后，依然选择用轻的方式说话、做选择。`,
-      sub: `温柔是会传染的。` },
-
-    { type:"quote",
-      q: `生活不是要等风暴过去，而是要学会在雨中跳舞。`,
-      src: null,
-      line: `愿你在难的日子里，也能找到自己的小舞步。`,
-      story: `并不是所有难题都有「过去」的一天，更多时候是难题一直都在，而我们慢慢和它相处得来。一杯喜欢的茶、一首听了几百遍的歌、一次 20 分钟的散步——这些就是「雨中起舞」。`,
-      sub: `不必等「好了再说」，现在就可以开始。` },
-
-    { type:"quote",
-      q: `慢一点没关系，方向对了就不算慢。`,
-      src: `改编自近期微博热门`,
-      line: `愿你慢一点，也愿你一直走在对的方向上。`,
-      story: `我们总被提醒「再快一点」，却很少被提醒「方向对不对」。其实慢一点从来不是问题——怕的是跑得飞快，却忘了自己要去哪。今天走得慢一点也没关系，只要你还在自己选的路上。`,
-      sub: `快不是本事，方向才是。` }
-  ];
-
-  /* 合并成 phraseLibrary，自动化和前端统一从这一份拿
-     顺序：小词(外语) → 英文小词 → 中文短句 → 英文短句 */
-  const phraseLibrary = [
-    ...wordLibrary.map(x => Object.assign({ type:"word" }, x)),
-    ...enWordLibrary.map(x => Object.assign({ type:"word" }, x)),
-    ...quoteLibrary,
-    ...enQuoteLibrary.map(x => Object.assign({ type:"en-quote" }, x))
-  ];
-
-  const fallbackWord = {
-    date:"", note:"这是内置示例内容。开启每日 08:00 自动推送后，这里会替换成当天精选。",
-    item: phraseLibrary[0]   // Sobremesa
-  };
 
   return { quotes, books, finance, finPath, cats, incomeCats, ieltsScenes, ieltsWords,
            listening, recipes, quests, badges, editTips, mediaPath, monetize,
            scriptFrame, fallbackTrends, fallbackNews,
            stockBasics, stockMoves, stockNews, stockSources,
            podcasts, fallbackPodcasts,
-           wordLibrary, enWordLibrary, quoteLibrary, enQuoteLibrary, phraseLibrary, fallbackWord,
            museTypes };
 })();
 
@@ -1627,8 +1270,6 @@ window.S = (function () {
     podcastCache: null,
     podHeard: [],
     podWant: [],
-    wordCache: null,
-    wordSeen: [],
     seedOffset: 0,
     lock: { enabled:false, pin:"" }
   };
@@ -1911,8 +1552,8 @@ window.S = (function () {
         if(to) clearTimeout(to);
         if(!r.ok) throw 0;
         const j = await r.json();
-        // news/trends/podcasts 用 items/xhs；word（每日一句）结构是 {date,note,item}，用 item/date 判定
-        if(j && (j.items || j.xhs || j.item || j.date)){ d[cacheKey] = j; save(); return j; }
+        // news/trend/podcast 数据用 items/xhs 字段判定
+        if(j && (j.items || j.xhs)){ d[cacheKey] = j; save(); return j; }
         throw 0;
       }catch(e){ return d[cacheKey] || fb; }
     };
@@ -2962,8 +2603,7 @@ window.ViewLearn = (function () {
       ${[["read","📚 每日阅读"],["scene","💬 情景练习"],["word","🔤 单词记忆"],["listen","🎬 影视精听"],["podcast","🎧 播客"]].map(c=>
         `<button class="chip ${tab===c[0]?"on":""}" data-act="lTab" data-t="${c[0]}">${c[1]}</button>`).join("")}
     </div>
-    ${tab==="read"?read():tab==="scene"?scene():tab==="word"?word():tab==="listen"?listen():podcast()}
-    ${phraseLibCard()}`;
+    ${tab==="read"?read():tab==="scene"?scene():tab==="word"?word():tab==="listen"?listen():podcast()}`;
   }
 
   /* ---------- 每日阅读 ---------- */
@@ -3224,27 +2864,6 @@ window.ViewLearn = (function () {
     </div>`;
   }
 
-  /* ---------- 词库入口（小词 & 短句浏览） ---------- */
-  function phraseLibCard(){
-    const list = DB.phraseLibrary || [];
-    const seen = S.d.wordSeen || [];
-    const sample = list.slice(0, 4);
-    return `
-    <div class="card">
-      <div class="sec-head">
-        <h2><span class="dot" style="background:var(--clay)"></span>词库 · 短句 & 小词</h2>
-        <span class="more" data-act="allPhrases">全部 ${list.length} 条 ›</span>
-      </div>
-      <p class="tiny" style="line-height:1.8;margin:0 0 10px">这里收录了跨文化的小词和短句，慢慢翻，慢慢记。</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        ${sample.map(p=>`<div style="background:var(--card-2);border-radius:11px;padding:10px 11px">
-          <div style="font-weight:670;font-size:13px">${esc(p.type==="quote"?(p.q||"").slice(0,18)+( (p.q||"").length>18?"…":"" ):p.w)}</div>
-          <div class="tiny" style="margin-top:3px;color:var(--ink-3)">${esc(p.type==="quote"?"中文短句":p.lang)} · ${esc(p.tag||"")}</div>
-        </div>`).join("")}
-      </div>
-    </div>`;
-  }
-
   /* ---------- 事件 ---------- */
   UI.on("lTab", el=>{ tab = el.dataset.t; flipped=false; showAns=false; App.refresh(); });
   UI.on("wantRead", el=>{
@@ -3328,29 +2947,6 @@ window.ViewLearn = (function () {
       </div><span><button class="lk" data-act="wantPod" data-t="${esc(p.t)}">${(S.d.podWant||[]).includes(p.t)?"已收藏":"＋ 想听"}</button></span></div>`).join(""));
   });
   UI.on("refreshPod", async ()=>{ podFetchedOnce=false; UI.toast("获取中…"); await S.fetchDaily(); App.refresh(); });
-
-  /* 词库浏览（学习页底部入口） */
-  UI.on("allPhrases", ()=>{
-    const seen = S.d.wordSeen || [];
-    const list = DB.phraseLibrary || [];
-    UI.sheet("词库（"+list.length+" 条）", list.map(p=>{
-      const key = p.type === "quote" ? (p.q || "") : p.w;
-      const isSeen = p.type !== "quote" && seen.includes(p.w);
-      const head = p.type === "quote"
-        ? `<b style="font-size:13.5px;line-height:1.5">${esc(p.q)}</b>
-           ${p.src?`<div class="tiny" style="color:var(--ink-3);margin-top:2px">— ${esc(p.src)}</div>`:""}
-           <div style="font-size:12.5px;line-height:1.7;margin-top:6px;color:var(--ink-2)">${esc(p.line)}</div>`
-        : `<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-             <b style="font-size:14.5px">${esc(p.w)}</b>
-             <span class="pill" style="background:var(--clay-s);color:var(--clay);font-size:10.5px">${esc(p.lang)}</span>
-             <span class="tiny" style="color:var(--ink-3)">${esc(p.tag)}</span>
-             ${isSeen?'<span class="pill" style="background:var(--sage-s);color:var(--sage);font-size:10.5px">已记</span>':""}
-           </div>
-           <div class="tiny" style="margin-top:3px">${esc(p.p)}</div>
-           <div style="font-size:12.5px;line-height:1.7;margin-top:5px;color:var(--ink-2)">${esc(p.line)}</div>`;
-      return `<div class="kv" style="align-items:flex-start;padding:9px 0">${head}</div>`;
-    }).join(""));
-  });
 
   async function afterRender(){
     // 进入播客页时拉取当日 09:00 推送

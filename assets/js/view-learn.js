@@ -16,8 +16,7 @@ window.ViewLearn = (function () {
       ${[["read","📚 每日阅读"],["scene","💬 情景练习"],["word","🔤 单词记忆"],["listen","🎬 影视精听"],["podcast","🎧 播客"]].map(c=>
         `<button class="chip ${tab===c[0]?"on":""}" data-act="lTab" data-t="${c[0]}">${c[1]}</button>`).join("")}
     </div>
-    ${tab==="read"?read():tab==="scene"?scene():tab==="word"?word():tab==="listen"?listen():podcast()}
-    ${phraseLibCard()}`;
+    ${tab==="read"?read():tab==="scene"?scene():tab==="word"?word():tab==="listen"?listen():podcast()}`;
   }
 
   /* ---------- 每日阅读 ---------- */
@@ -278,27 +277,6 @@ window.ViewLearn = (function () {
     </div>`;
   }
 
-  /* ---------- 词库入口（小词 & 短句浏览） ---------- */
-  function phraseLibCard(){
-    const list = DB.phraseLibrary || [];
-    const seen = S.d.wordSeen || [];
-    const sample = list.slice(0, 4);
-    return `
-    <div class="card">
-      <div class="sec-head">
-        <h2><span class="dot" style="background:var(--clay)"></span>词库 · 短句 & 小词</h2>
-        <span class="more" data-act="allPhrases">全部 ${list.length} 条 ›</span>
-      </div>
-      <p class="tiny" style="line-height:1.8;margin:0 0 10px">这里收录了跨文化的小词和短句，慢慢翻，慢慢记。</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        ${sample.map(p=>`<div style="background:var(--card-2);border-radius:11px;padding:10px 11px">
-          <div style="font-weight:670;font-size:13px">${esc(p.type==="quote"?(p.q||"").slice(0,18)+( (p.q||"").length>18?"…":"" ):p.w)}</div>
-          <div class="tiny" style="margin-top:3px;color:var(--ink-3)">${esc(p.type==="quote"?"中文短句":p.lang)} · ${esc(p.tag||"")}</div>
-        </div>`).join("")}
-      </div>
-    </div>`;
-  }
-
   /* ---------- 事件 ---------- */
   UI.on("lTab", el=>{ tab = el.dataset.t; flipped=false; showAns=false; App.refresh(); });
   UI.on("wantRead", el=>{
@@ -382,29 +360,6 @@ window.ViewLearn = (function () {
       </div><span><button class="lk" data-act="wantPod" data-t="${esc(p.t)}">${(S.d.podWant||[]).includes(p.t)?"已收藏":"＋ 想听"}</button></span></div>`).join(""));
   });
   UI.on("refreshPod", async ()=>{ podFetchedOnce=false; UI.toast("获取中…"); await S.fetchDaily(); App.refresh(); });
-
-  /* 词库浏览（学习页底部入口） */
-  UI.on("allPhrases", ()=>{
-    const seen = S.d.wordSeen || [];
-    const list = DB.phraseLibrary || [];
-    UI.sheet("词库（"+list.length+" 条）", list.map(p=>{
-      const key = p.type === "quote" ? (p.q || "") : p.w;
-      const isSeen = p.type !== "quote" && seen.includes(p.w);
-      const head = p.type === "quote"
-        ? `<b style="font-size:13.5px;line-height:1.5">${esc(p.q)}</b>
-           ${p.src?`<div class="tiny" style="color:var(--ink-3);margin-top:2px">— ${esc(p.src)}</div>`:""}
-           <div style="font-size:12.5px;line-height:1.7;margin-top:6px;color:var(--ink-2)">${esc(p.line)}</div>`
-        : `<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-             <b style="font-size:14.5px">${esc(p.w)}</b>
-             <span class="pill" style="background:var(--clay-s);color:var(--clay);font-size:10.5px">${esc(p.lang)}</span>
-             <span class="tiny" style="color:var(--ink-3)">${esc(p.tag)}</span>
-             ${isSeen?'<span class="pill" style="background:var(--sage-s);color:var(--sage);font-size:10.5px">已记</span>':""}
-           </div>
-           <div class="tiny" style="margin-top:3px">${esc(p.p)}</div>
-           <div style="font-size:12.5px;line-height:1.7;margin-top:5px;color:var(--ink-2)">${esc(p.line)}</div>`;
-      return `<div class="kv" style="align-items:flex-start;padding:9px 0">${head}</div>`;
-    }).join(""));
-  });
 
   async function afterRender(){
     // 进入播客页时拉取当日 09:00 推送

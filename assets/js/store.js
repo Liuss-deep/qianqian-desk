@@ -35,8 +35,6 @@ window.S = (function () {
     podcastCache: null,
     podHeard: [],
     podWant: [],
-    wordCache: null,
-    wordSeen: [],
     seedOffset: 0,
     lock: { enabled:false, pin:"" }
   };
@@ -319,8 +317,8 @@ window.S = (function () {
         if(to) clearTimeout(to);
         if(!r.ok) throw 0;
         const j = await r.json();
-        // news/trends/podcasts 用 items/xhs；word（每日一句）结构是 {date,note,item}，用 item/date 判定
-        if(j && (j.items || j.xhs || j.item || j.date)){ d[cacheKey] = j; save(); return j; }
+        // news/trend/podcast 数据用 items/xhs 字段判定
+        if(j && (j.items || j.xhs)){ d[cacheKey] = j; save(); return j; }
         throw 0;
       }catch(e){ return d[cacheKey] || fb; }
     };
