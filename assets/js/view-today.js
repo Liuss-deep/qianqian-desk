@@ -139,7 +139,11 @@ window.ViewToday = (function () {
         <div class="stars" id="stars">${[1,2,3,4,5].map(i=>
           `<span class="star ${(rv.score||0)>=i?"on":""}" data-act="star" data-i="${i}">★</span>`).join("")}</div>
       </div>
-      <button class="btn block" data-act="saveReview" style="margin-top:6px">保存今日复盘 · +20 积分</button>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button class="btn" data-act="saveReview" style="flex:1">保存今日复盘 · +20 积分</button>
+        <button class="btn ghost" data-act="stashReview" style="flex:0 0 auto">暂存草稿</button>
+      </div>
+      ${(rv.saved||rv.good||rv.bad||rv.next)?`<button class="btn ghost block" data-act="delReview" style="margin-top:8px;color:#C0736F">🗑 删除今日复盘</button>`:""}
     </div>
 
     <!-- 最近复盘 -->
@@ -319,6 +323,15 @@ window.ViewToday = (function () {
       </div>`).join("")
       + (n.note ? `<div class="scene-tip" style="margin-top:10px">${esc(n.note)}</div>` : "");
 
+    // 复盘输入框实时自动保存：写着写着切走 / 刷新也不丢字（暂存按钮之外再加一道保险）
+    [["rvGood","good"],["rvBad","bad"],["rvNext","next"]].forEach(([id,key])=>{
+      const el = document.getElementById(id);
+      if(el && !el._rvb){ el._rvb = true; el.addEventListener("input", ()=>{
+        const t = S.today(); S.d.review[t] = S.d.review[t] || {};
+        S.d.review[t][key] = el.value; S.save();
+      }); }
+    });
+
   }
 
 
@@ -365,6 +378,29 @@ window.ViewToday = (function () {
       <div class="rev-note">${esc(note)}</div>
     `);
   });
+  UI.on("stashReview", ()=>{
+    const t = S.today();
+    const r = S.d.review[t] = S.d.review[t] || {};
+    r.good = document.getElementById("rvGood").value;
+    r.bad  = document.getElementById("rvBad").value;
+    r.next = document.getElementById("rvNext").value;
+    S.save();
+    UI.toast("已暂存草稿，随时回来继续写 ✍️");
+  });
+  UI.on("delReview", ()=>{
+    const t = S.today();
+    if(!S.d.review[t]) return;
+    UI.sheet("删除今日复盘", `<p style="font-size:13px;line-height:1.9;color:var(--ink-2);margin-bottom:14px">确定删除今天的复盘吗？删除后无法恢复。</p>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost" data-act="closeSheet" style="flex:1">再想想</button>
+        <button class="btn" data-act="doDelReview" style="flex:1;background:#C0736F;border-color:#C0736F;color:#fff">确认删除</button>
+      </div>`);
+  });
+  UI.on("doDelReview", ()=>{
+    const t = S.today();
+    if(S.d.review[t]){ delete S.d.review[t]; S.save(); }
+    UI.closeSheet(); App.refresh(); UI.toast("已删除今日复盘");
+  });
   UI.on("refreshNews", async ()=>{ dailyData = null; UI.toast("正在获取…"); await afterRender(); UI.toast("已更新"); });
   UI.on("quest", el=>{
     const t=S.today(); const arr = S.d.questDone[t] = S.d.questDone[t]||[];
@@ -401,7 +437,22 @@ window.ViewToday = (function () {
       ${row("✅ 做成了什么", r.good)}
       ${row("🌀 可以更好", r.bad)}
       ${row("🎯 明天最重要", r.next)}
+      <button class="btn ghost block" data-act="delReviewByKey" data-k="${k}" style="margin-top:14px;color:#C0736F">🗑 删除这条复盘</button>
     `);
+  });
+  UI.on("delReviewByKey", el=>{
+    const k = el.dataset.k;
+    if(!S.d.review[k]) return;
+    UI.sheet("删除这条复盘", `<p style="font-size:13px;line-height:1.9;color:var(--ink-2);margin-bottom:14px">确定删除 ${k} 的复盘吗？删除后无法恢复。</p>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost" data-act="closeSheet" style="flex:1">再想想</button>
+        <button class="btn" data-act="doDelReviewByKey" data-k="${k}" style="flex:1;background:#C0736F;border-color:#C0736F;color:#fff">确认删除</button>
+      </div>`);
+  });
+  UI.on("doDelReviewByKey", el=>{
+    const k = el.dataset.k;
+    if(S.d.review[k]){ delete S.d.review[k]; S.save(); }
+    UI.closeSheet(); App.refresh(); UI.toast("已删除该复盘");
   });
   UI.on("weekReview", ()=>{
     const rs = pastDays(7).map(k=>S.d.review[k]).filter(r=>r&&r.saved);
