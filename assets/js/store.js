@@ -400,7 +400,10 @@ window.S = (function () {
       const { data, error } = await sb.from("app_state").select("data,updated_at").eq("id", SB_ROW).maybeSingle();
       if(error || !data) return null;
       const raw = data.updated_at || "";
-      const at = raw ? new Date(raw.endsWith("Z") ? raw : raw + "Z").getTime() : 0;
+      // Supabase 返回的 updated_at 形如 "2026-08-05T02:32:24.289+00:00"（带偏移量、不以 Z 结尾）。
+      // 直接给偏移量时间戳加 "Z" 会变成 "...+00:00Z"，被 Date 解析为 NaN —— 曾导致 pull 永不触发、双端无法同步。
+      // 用 Date.parse 同时兼容 "+00:00" 与 "Z" 两种写法。
+      const at = raw ? (Date.parse(raw) || new Date(raw).getTime() || 0) : 0;
       return { at, state: data.data };
     }catch(e){ return null; }
   }
