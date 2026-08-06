@@ -394,9 +394,37 @@ window.S = (function () {
       }
       return await get("data/daily/word-latest.json","wordCache", DB.fallbackWord);
     }
+    // 新闻：优先读 Supabase（与 daily_word 同表，即时生效、免部署）；离线/失败再回退静态 JSON
+    async function fetchNews(){
+      const sb = getSupa();
+      if(sb){
+        try{
+          const { data, error } = await sb.from("app_state").select("data").eq("id","daily_news").maybeSingle();
+          if(!error && data && data.data && Array.isArray(data.data.items) && data.data.items.length){
+            d.newsCache = data.data; save();
+            return data.data;
+          }
+        }catch(e){}
+      }
+      return await get("data/daily/news-latest.json","newsCache", DB.fallbackNews);
+    }
+    // 热点：同上，Supabase 表 id='daily_trends'
+    async function fetchTrend(){
+      const sb = getSupa();
+      if(sb){
+        try{
+          const { data, error } = await sb.from("app_state").select("data").eq("id","daily_trends").maybeSingle();
+          if(!error && data && data.data && (Array.isArray(data.data.xhs) || Array.isArray(data.data.items))){
+            d.trendCache = data.data; save();
+            return data.data;
+          }
+        }catch(e){}
+      }
+      return await get("data/daily/trends-latest.json","trendCache", DB.fallbackTrends);
+    }
     const [news, trend, podcast, word] = await Promise.all([
-      get("data/daily/news-latest.json","newsCache", DB.fallbackNews),
-      get("data/daily/trends-latest.json","trendCache", DB.fallbackTrends),
+      fetchNews(),
+      fetchTrend(),
       get("data/daily/podcasts-latest.json","podcastCache", DB.fallbackPodcasts),
       fetchWord()
     ]);
