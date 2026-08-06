@@ -1118,6 +1118,20 @@ window.DB = (function () {
     ]
   };
 
+  // 新闻当天未推送成功时的本地兜底「锦囊」池：按日期确定性轮换，避免显示过期新闻
+  const newsTips = [
+    { t:"先存够应急金", d:"投资前先把 3–6 个月生活费放进随时能取的账户。没有安全垫，任何波动都会变成被迫割肉。" },
+    { t:"定投纪律：跌不慌、涨不追", d:"基金定投最怕情绪化。设好每周/每月金额就别看盘改主意，长期摊平成本比择时靠谱。" },
+    { t:"下单前等 24 小时", d:"想买非必需品时先放进购物车晾一天，能拦掉大半冲动消费，钱自然就攒下来了。" },
+    { t:"雅思：精听 > 刷题", d:"每天精听 1 段真实语料 + 跟读，比刷十套题更能提分；词汇放在语境里记才记得住。" },
+    { t:"选题比剪辑更重要", d:"做自媒体先想清楚「这条对谁有用、解决什么」，再开剪。没有价值的精细剪辑只是更费时间。" },
+    { t:"真实感 > 精致感", d:"去滤镜、说人话的记录收藏率往往高于精修大片——观众要的是共鸣，不是广告片。" },
+    { t:"复盘写三件小确幸", d:"每天记 3 件好事，比记账更容易坚持，也更直接地提升幸福感和对生活的掌控感。" },
+    { t:"23:30 前睡", d:"睡眠是性价比最高的自我管理。早睡一天，第二天情绪、注意力和皮肤都会回报你。" },
+    { t:"收益高的先问凭什么", d:"任何「稳赚」「高息」先问风险在哪、凭什么轮到你。天上掉馅饼，多半是陷阱的盖子。" },
+    { t:"费曼学习法", d:"能把一个概念讲给外行听明白，才是真懂。学完新东西试着输出一遍，漏洞立刻现形。" }
+  ];
+
   /* ---------- 每日一句（8:30 推送）兜底 ---------- */
   const fallbackWord = {
     date:"", note:"这是内置占位。开启每日 8:30 自动推送后，这里会替换成当天的每日一句。",
@@ -1236,7 +1250,7 @@ window.DB = (function () {
 
   return { quotes, books, finance, finPath, cats, incomeCats, ieltsScenes, ieltsWords,
            listening, recipes, quests, badges, editTips, mediaPath, monetize,
-           scriptFrame, fallbackTrends, fallbackNews, fallbackWord,
+           scriptFrame, fallbackTrends, fallbackNews, fallbackWord, newsTips,
            stockBasics, stockMoves, stockNews, stockSources,
            podcasts, fallbackPodcasts,
            museTypes };
@@ -1590,6 +1604,20 @@ window.S = (function () {
         throw 0;
       }catch(e){ return d[cacheKey] || fb; }
     };
+    // 新闻兜底：当 latest 非「今天」（自动化 08:30 未成功推送）时，降级为本地轮换锦囊，避免展示过期新闻
+    function buildNewsFallback(){
+      const tips = (DB.newsTips && DB.newsTips.length) ? DB.newsTips : null;
+      if(tips && tips.length){
+        const idx = Math.abs(dayNum() % tips.length);
+        const t = tips[idx];
+        return {
+          date:"",
+          note:"⚠️ 今日新闻推送尚未更新（通常每天 08:30 自动生成）。先送你一条锦囊：",
+          items:[ { t:t.t, d:t.d } ]
+        };
+      }
+      return DB.fallbackNews;
+    }
     async function fetchWord(){
       const sb = getSupa();
       if(sb){
@@ -1609,7 +1637,9 @@ window.S = (function () {
       get("data/daily/podcasts-latest.json","podcastCache", DB.fallbackPodcasts),
       fetchWord()
     ]);
-    return { news, trend, podcast, word };
+    // 新闻非今日则降级到本地锦囊（避免停留在昨天的过期新闻）
+    const newsOut = (news && news.date === S.today()) ? news : buildNewsFallback();
+    return { news: newsOut, trend, podcast, word };
   }
 
   function reset(){ localStorage.removeItem(KEY); location.reload(); }

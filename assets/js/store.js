@@ -344,6 +344,20 @@ window.S = (function () {
         throw 0;
       }catch(e){ return d[cacheKey] || fb; }
     };
+    // 新闻兜底：当 latest 非「今天」（自动化 08:30 未成功推送）时，降级为本地轮换锦囊，避免展示过期新闻
+    function buildNewsFallback(){
+      const tips = (DB.newsTips && DB.newsTips.length) ? DB.newsTips : null;
+      if(tips && tips.length){
+        const idx = Math.abs(dayNum() % tips.length);
+        const t = tips[idx];
+        return {
+          date:"",
+          note:"⚠️ 今日新闻推送尚未更新（通常每天 08:30 自动生成）。先送你一条锦囊：",
+          items:[ { t:t.t, d:t.d } ]
+        };
+      }
+      return DB.fallbackNews;
+    }
     async function fetchWord(){
       const sb = getSupa();
       if(sb){
@@ -363,7 +377,9 @@ window.S = (function () {
       get("data/daily/podcasts-latest.json","podcastCache", DB.fallbackPodcasts),
       fetchWord()
     ]);
-    return { news, trend, podcast, word };
+    // 新闻非今日则降级到本地锦囊（避免停留在昨天的过期新闻）
+    const newsOut = (news && news.date === S.today()) ? news : buildNewsFallback();
+    return { news: newsOut, trend, podcast, word };
   }
 
   function reset(){ localStorage.removeItem(KEY); location.reload(); }

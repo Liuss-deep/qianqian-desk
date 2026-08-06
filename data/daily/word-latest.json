@@ -1,8 +1,10 @@
 {
   "date": "2026-08-06",
+  "note": "做视频、写东西、搭工作台——你给出去的，都会以另一种方式流回来。",
   "item": {
-    "type": "trivia",
-    "text": "香蕉是浆果，而草莓不是。",
-    "zh": "植物学的分类，常常反直觉。"
+    "type": "en-quote",
+    "text": "You can't use up creativity. The more you use, the more you have.",
+    "author": "Maya Angelou",
+    "zh": "创造力是耗不尽的。你越是使用它，它反而越是丰盈。"
   }
 }
