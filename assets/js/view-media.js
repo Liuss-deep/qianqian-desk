@@ -110,7 +110,7 @@ window.ViewMedia = (function () {
   function hot(){
     return `
     <div class="card">
-      <div class="sec-head"><h2><span class="dot" style="background:var(--rose)"></span>昨日热门 · 08:00 推送</h2>
+      <div class="sec-head"><h2><span class="dot" style="background:var(--rose)"></span>今日热点 · 08:00 推送</h2>
         <span class="more" data-act="refreshHot">刷新</span></div>
       <div id="hotBox"><div class="empty">正在读取今日推送…</div></div>
     </div>

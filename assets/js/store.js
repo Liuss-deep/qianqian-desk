@@ -358,6 +358,29 @@ window.S = (function () {
       }
       return DB.fallbackNews;
     }
+    // 热点兜底：当 latest 非「今天」（自动化 08:00 未成功推送）时，降级为本地常青选题，避免展示过期热点
+    function buildTrendFallback(){
+      const base = DB.fallbackTrends || { xhs:[], dy:[], script:{ title:"", rows:[] } };
+      const day = dayNum();
+      const rot = (arr, n) => {
+        if(!arr || !arr.length) return [];
+        const out = [], used = new Set();
+        let i = 0;
+        while(out.length < n && i < arr.length * 3){
+          const k = (Math.imul(day, 2654435761) + i * 40503) % arr.length;
+          if(!used.has(k)){ used.add(k); out.push(arr[k]); }
+          i++;
+        }
+        return out.length ? out : arr.slice(0, n);
+      };
+      return {
+        date:"",
+        note:"⚠️ 今日热点（08:00）推送尚未更新，先送你一组常青选题参考；推送恢复后会自动替换为当日真实热榜。",
+        xhs: rot(base.xhs, 3),
+        dy: rot(base.dy, 3),
+        script: base.script || { title:"", rows:[] }
+      };
+    }
     async function fetchWord(){
       const sb = getSupa();
       if(sb){
@@ -377,9 +400,10 @@ window.S = (function () {
       get("data/daily/podcasts-latest.json","podcastCache", DB.fallbackPodcasts),
       fetchWord()
     ]);
-    // 新闻非今日则降级到本地锦囊（避免停留在昨天的过期新闻）
+    // 新闻 / 热点非今日则降级到本地兜底（避免停留在昨天的过期内容）
     const newsOut = (news && news.date === S.today()) ? news : buildNewsFallback();
-    return { news: newsOut, trend, podcast, word };
+    const trendOut = (trend && trend.date === S.today()) ? trend : buildTrendFallback();
+    return { news: newsOut, trend: trendOut, podcast, word };
   }
 
   function reset(){ localStorage.removeItem(KEY); location.reload(); }
