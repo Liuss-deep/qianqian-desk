@@ -21,6 +21,7 @@ window.S = (function () {
     menu: {},           // {date:{name,custom,ing,steps}}
     myRecipes: [],      // 自定义菜谱
     photos: {},         // {date:[photoId]}
+    weight: {},         // {date:{kg,note,at}} 每日体重记录
     questDone: {},      // {date:[questId]}
     streak: 0, lastCheck:"",
     badges: [],
@@ -321,6 +322,36 @@ window.S = (function () {
     save();
   }
 
+  /* ---------- 体重记录 ---------- */
+  function addWeight(kg, note, date){
+    kg = Number(kg);
+    if(!isFinite(kg) || kg <= 0 || kg > 400) return { ok:false, msg:"体重数值不对（0–400 kg）" };
+    const k = (date || today()).slice(0,10);
+    const isNew = !d.weight[k];
+    d.weight[k] = { kg, note:(note||"").trim(), at:Date.now() };
+    save();
+    if(isNew) addCoin(2, "记录体重");   // 每天首次记录给积分，避免刷分
+    return { ok:true, isNew };
+  }
+  function getWeight(date){ const k=(date||today()).slice(0,10); return d.weight[k] || null; }
+  function weightHistory(n){
+    const keys = Object.keys(d.weight).filter(k=>d.weight[k] && isFinite(d.weight[k].kg)).sort();
+    const slice = n ? keys.slice(-n) : keys;
+    return slice.map(k=>({ date:k, kg:d.weight[k].kg, note:d.weight[k].note||"", at:d.weight[k].at||0 }));
+  }
+  function weightStats(){
+    const all = weightHistory(0);
+    if(!all.length) return null;
+    const h = all.slice(-30);                 // 最近 30 条用于图表与区间变化
+    const last = h[h.length-1];
+    const prev = h.length>=2 ? h[h.length-2] : null;
+    const delta = prev ? +(last.kg - prev.kg).toFixed(1) : null;
+    const kgs = h.map(x=>x.kg);
+    const min = Math.min(...kgs), max = Math.max(...kgs);
+    const rangeDelta = +(last.kg - h[0].kg).toFixed(1);
+    return { last, prev, delta, min, max, count:all.length, rangeDelta, hist:h };
+  }
+
   /* ---------- 远程每日推送 ---------- */
   async function fetchDaily(){
     const get = async (p, cacheKey, fb) => {
@@ -572,6 +603,7 @@ window.S = (function () {
            sv, addSaving, setSalaryDay, setGoal, daysToSalary,
            putImg, getImg, delImg, compressImage, fetchDaily, reset, exportData, importData,
            museList, addMuse, delMuse,
+           addWeight, getWeight, weightHistory, weightStats,
            normURL, getSyncURL, syncInfo, pushSync, pullSync, connectSync, setSyncURL, initSync, testSupa,
            lockEnabled, setPin, verifyPin, disableLock, changePin };
 })();
