@@ -11,10 +11,10 @@ window.ViewLife = (function () {
       <p>厨房是最容易获得成就感的地方，而生活本身就是一场长线游戏。</p>
     </div>
     <div class="chips">
-      ${[["food","🍳 今日食谱"],["mine","📔 我的菜单"],["photo","📷 拍照打卡"],["game","🌏 地球 Online"]].map(c=>
+      ${[["food","🍳 今日食谱"],["mine","📔 我的菜单"],["photo","📷 拍照打卡"],["weight","⚖️ 体重记录"],["game","🌏 地球 Online"]].map(c=>
         `<button class="chip ${tab===c[0]?"on":""}" data-act="fTab" data-t="${c[0]}">${c[1]}</button>`).join("")}
     </div>
-    ${tab==="food"?food():tab==="mine"?mine():tab==="photo"?photo():game()}`;
+    ${tab==="food"?food():tab==="mine"?mine():tab==="photo"?photo():tab==="weight"?weight():game()}`;
   }
 
   /* ---------- 菜单数据结构助手（支持一天多道菜） ---------- */
@@ -241,6 +241,73 @@ window.ViewLife = (function () {
     </div>`;
   }
 
+  /* ---------- 每日体重记录 ---------- */
+  function weightChart(hist){
+    if(!hist || hist.length < 2) return `<div class="tiny" style="color:var(--ink-3);text-align:center;padding:16px 0">记录满 2 天，就能画出变化曲线 📈</div>`;
+    const W = 320, H = 116, padX = 16, padY = 16;
+    const kgs = hist.map(x=>x.kg);
+    let min = Math.min(...kgs), max = Math.max(...kgs);
+    if(min === max){ min -= 1; max += 1; }
+    const n = hist.length;
+    const x = i => padX + (W - 2*padX) * (n === 1 ? .5 : i/(n-1));
+    const y = v => padY + (H - 2*padY) * (1 - (v - min)/(max - min));
+    const line = hist.map((r,i)=>`${x(i).toFixed(1)},${y(r.kg).toFixed(1)}`).join(" ");
+    const area = `M ${x(0).toFixed(1)},${(H-padY).toFixed(1)} L ` + hist.map((r,i)=>`${x(i).toFixed(1)},${y(r.kg).toFixed(1)}`).join(" L ") + ` L ${x(n-1).toFixed(1)},${(H-padY).toFixed(1)} Z`;
+    const last = hist[n-1];
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:2px">
+      <defs><linearGradient id="wgGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#B7C2B0" stop-opacity="0.38"/>
+        <stop offset="100%" stop-color="#B7C2B0" stop-opacity="0"/></linearGradient></defs>
+      <path d="${area}" fill="url(#wgGrad)" />
+      <polyline points="${line}" fill="none" stroke="#7E9683" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${x(n-1).toFixed(1)}" cy="${y(last.kg).toFixed(1)}" r="3.6" fill="#7E9683"/>
+    </svg>
+    <div class="tiny" style="text-align:center;color:var(--ink-3);margin-top:2px">${hist[0].date.slice(5)} → ${last.date.slice(5)} · 区间 ${last.kg>hist[0].kg?'+':''}${+(last.kg-hist[0].kg).toFixed(1)} kg</div>`;
+  }
+
+  function weight(){
+    const t = S.today();
+    const todayW = S.getWeight(t);
+    const st = S.weightStats();
+    const hist = st ? st.hist.slice(-14) : [];     // 图表用最近 14 条
+    const recent = st ? st.hist.slice(-7).reverse() : [];
+    const deltaCls = st && st.delta!==null ? (st.delta < 0 ? "var(--green,#2e9e5b)" : st.delta > 0 ? "var(--red,#d9534f)" : "var(--ink-2)") : "var(--ink-2)";
+    return `
+    <div class="card">
+      <div class="sec-head"><h2><span class="dot" style="background:var(--clay)"></span>今日体重</h2>
+        ${todayW?`<span class="more">已记录</span>`:`<span class="more">还没记</span>`}</div>
+      <div class="fld"><label>体重（kg）</label>
+        <div style="display:flex;gap:8px">
+          <input class="inp" id="wKg" type="number" step="0.1" min="20" max="300" inputmode="decimal" placeholder="如 55.5" value="${todayW?todayW.kg:""}" style="flex:1" />
+          <button class="btn" data-act="saveWeight" style="flex:0 0 auto">记录</button>
+        </div>
+      </div>
+      <div class="fld"><label>备注（可选）</label>
+        <input class="inp" id="wNote" placeholder="如 晨起空腹 / 昨晚吃多了" value="${todayW?(todayW.note||""):""}" />
+      </div>
+      ${todayW?`<div class="scene-tip" style="background:var(--sand-s);color:#8A7A66;margin-top:12px">✅ 今天已记录 <b>${todayW.kg} kg</b>${todayW.note?` · ${esc(todayW.note)}`:""}</div>`:""}
+    </div>
+
+    ${st ? `<div class="card">
+      <div class="sec-head"><h2><span class="dot" style="background:var(--olive)"></span>趋势</h2>
+        <span class="more">共 ${st.count} 天记录</span></div>
+      <div style="display:flex;gap:12px;margin-bottom:8px">
+        <div style="flex:1"><div class="tiny" style="color:var(--ink-3)">当前</div><div style="font-size:20px;font-weight:700">${st.last.kg}<span style="font-size:12px;color:var(--ink-3)"> kg</span></div></div>
+        <div style="flex:1"><div class="tiny" style="color:var(--ink-3)">较上次</div><div style="font-size:20px;font-weight:700;color:${deltaCls}">${st.delta===null?"—":(st.delta>0?"+":"")+st.delta}</div></div>
+        <div style="flex:1"><div class="tiny" style="color:var(--ink-3)">最低/最高</div><div style="font-size:15px;font-weight:700">${st.min} / ${st.max}</div></div>
+      </div>
+      ${weightChart(hist)}
+    </div>` : `<div class="card"><div class="empty"><span class="em">⚖️</span>记录体重，看清自己的变化<br>每天同一时间称，数据更准</div></div>`}
+
+    ${recent.length ? `<div class="card">
+      <div class="sec-head"><h2><span class="dot" style="background:var(--sand)"></span>最近记录</h2></div>
+      ${recent.map(r=>`<div class="kv">
+        <span>${r.date.slice(5)}</span>
+        <span><b>${r.kg} kg</b>${r.note?` <span class="tiny">${esc(r.note)}</span>`:""} <em class="lk sm" data-act="delWeight" data-k="${r.date}">删</em></span>
+      </div>`).join("")}
+    </div>` : ""}`;
+  }
+
   /* ---------- 渲染后：加载图片 ---------- */
   async function afterRender(){
     const shots = document.querySelectorAll(".shot[data-pid]");
@@ -364,6 +431,20 @@ window.ViewLife = (function () {
     S.d.photos[t] = (S.d.photos[t]||[]).filter(x=>x!==id); S.save(); App.refresh();
   });
   UI.on("badgeInfo", el=>{ UI.toast(el.dataset.n + " · " + el.dataset.c); });
+  UI.on("saveWeight", ()=>{
+    const kgEl = document.getElementById("wKg");
+    const noteEl = document.getElementById("wNote");
+    const v = kgEl ? kgEl.value.trim() : "";
+    if(!v){ UI.toast("先填个体重吧"); return; }
+    const r = S.addWeight(v, noteEl ? noteEl.value : "");
+    if(!r.ok){ UI.toast(r.msg); return; }
+    UI.toast(r.isNew ? "已记录 · +2 积分" : "已更新今天的体重");
+    App.refresh();
+  });
+  UI.on("delWeight", el=>{
+    delete S.d.weight[el.dataset.k];
+    S.save(); App.refresh();
+  });
 
   return { render, afterRender };
 })();
