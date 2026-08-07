@@ -272,6 +272,21 @@ window.ViewLife = (function () {
     const hist = st ? st.hist.slice(-14) : [];     // 图表用最近 14 条
     const recent = st ? st.hist.slice(-7).reverse() : [];
     const deltaCls = st && st.delta!==null ? (st.delta < 0 ? "var(--green,#2e9e5b)" : st.delta > 0 ? "var(--red,#d9534f)" : "var(--ink-2)") : "var(--ink-2)";
+    const hgt = (S.d.profile && S.d.profile.height) || 0;
+    const goal = S.d.weightGoal || 0;
+    const goalBar = st && st.goalInfo ? `
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line,#ECE7DF)">
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);margin-bottom:5px">
+          <span>目标 ${st.goal} kg · ${st.goalInfo.dir==="down"?"减重":st.goalInfo.dir==="up"?"增重":"维持"} ${st.goalInfo.done?"✅ 已达成":("还差 "+st.goalInfo.toGo+" kg")}</span>
+          <b>${st.goalInfo.pct}%</b>
+        </div>
+        <div class="bar"><i style="width:${st.goalInfo.pct}%;background:var(--clay)"></i></div>
+      </div>` : "";
+    const healthyBox = st && st.healthy ? `
+      <div style="margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--sage-s);color:#5F7563;font-size:12.5px;line-height:1.75">
+        🩺 健康体重范围 <b>${st.healthy.lo} – ${st.healthy.hi} kg</b>（BMI 18.5–23.9）
+        ${st.healthy.bmi?` · 当前 BMI <b>${st.healthy.bmi}</b> ${st.healthy.status==="normal"?"· 正常 👍":st.healthy.status==="low"?"· 偏轻，注意营养":"· 偏重，可配合记录饮食"}`:""}
+      </div>` : "";
     return `
     <div class="card">
       <div class="sec-head"><h2><span class="dot" style="background:var(--clay)"></span>今日体重</h2>
@@ -288,6 +303,17 @@ window.ViewLife = (function () {
       ${todayW?`<div class="scene-tip" style="background:var(--sand-s);color:#8A7A66;margin-top:12px">✅ 今天已记录 <b>${todayW.kg} kg</b>${todayW.note?` · ${esc(todayW.note)}`:""}</div>`:""}
     </div>
 
+    <div class="card">
+      <div class="sec-head"><h2><span class="dot" style="background:var(--mist)"></span>我的目标</h2>
+        <span class="more">${goal?("目标 "+goal+" kg"):"设一下"}</span></div>
+      <div class="fld"><label>身高（cm）</label>
+        <input class="inp" id="wH" type="number" step="1" min="100" max="250" inputmode="numeric" placeholder="如 165" value="${hgt||""}" /></div>
+      <div class="fld"><label>目标体重（kg）</label>
+        <input class="inp" id="wGoal" type="number" step="0.1" min="20" max="300" inputmode="decimal" placeholder="如 52.0" value="${goal||""}" /></div>
+      <button class="btn ghost block" data-act="saveGoal" style="margin-top:4px">保存目标</button>
+      <div class="tiny" style="margin-top:8px;color:var(--ink-3)">填好身高，会自动算出你的健康体重区间；设好目标后这里显示达标进度。</div>
+    </div>
+
     ${st ? `<div class="card">
       <div class="sec-head"><h2><span class="dot" style="background:var(--olive)"></span>趋势</h2>
         <span class="more">共 ${st.count} 天记录</span></div>
@@ -297,6 +323,8 @@ window.ViewLife = (function () {
         <div style="flex:1"><div class="tiny" style="color:var(--ink-3)">最低/最高</div><div style="font-size:15px;font-weight:700">${st.min} / ${st.max}</div></div>
       </div>
       ${weightChart(hist)}
+      ${goalBar}
+      ${healthyBox}
     </div>` : `<div class="card"><div class="empty"><span class="em">⚖️</span>记录体重，看清自己的变化<br>每天同一时间称，数据更准</div></div>`}
 
     ${recent.length ? `<div class="card">
@@ -444,6 +472,12 @@ window.ViewLife = (function () {
   UI.on("delWeight", el=>{
     delete S.d.weight[el.dataset.k];
     S.save(); App.refresh();
+  });
+  UI.on("saveGoal", ()=>{
+    const hEl = document.getElementById("wH"), gEl = document.getElementById("wGoal");
+    if(hEl && hEl.value.trim()){ const r = S.setHeight(hEl.value.trim()); if(!r.ok){ UI.toast(r.msg); return; } }
+    if(gEl && gEl.value.trim()){ const r = S.setWeightGoal(gEl.value.trim()); if(!r.ok){ UI.toast(r.msg); return; } }
+    UI.toast("目标已保存"); App.refresh();
   });
 
   return { render, afterRender };
