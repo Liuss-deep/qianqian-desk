@@ -3,7 +3,7 @@ window.S = (function () {
   const KEY = "qianqian.desk.v1";
 
   const defaults = {
-    profile: { name:"浅浅", city:"", avatar:"浅" },
+    profile: { name:"浅浅", city:"", avatar:"浅", height:0 },   // height: cm
     coins: 0,
     todos: {},          // {date:[{id,t,pri,done}]}
     review: {},         // {date:{good,bad,next,mood,score}}
@@ -22,6 +22,7 @@ window.S = (function () {
     myRecipes: [],      // 自定义菜谱
     photos: {},         // {date:[photoId]}
     weight: {},         // {date:{kg,note,at}} 每日体重记录
+    weightGoal: 0,       // 目标体重 kg（0=未设）
     questDone: {},      // {date:[questId]}
     streak: 0, lastCheck:"",
     badges: [],
@@ -334,6 +335,16 @@ window.S = (function () {
     return { ok:true, isNew };
   }
   function getWeight(date){ const k=(date||today()).slice(0,10); return d.weight[k] || null; }
+  function setHeight(cm){
+    cm = Number(cm);
+    if(!isFinite(cm) || cm < 100 || cm > 250) return { ok:false, msg:"身高请填 100–250 cm" };
+    d.profile.height = cm; save(); return { ok:true };
+  }
+  function setWeightGoal(kg){
+    kg = Number(kg);
+    if(!isFinite(kg) || kg < 20 || kg > 400) return { ok:false, msg:"目标体重请填 20–400 kg" };
+    d.weightGoal = kg; save(); return { ok:true };
+  }
   function weightHistory(n){
     const keys = Object.keys(d.weight).filter(k=>d.weight[k] && isFinite(d.weight[k].kg)).sort();
     const slice = n ? keys.slice(-n) : keys;
@@ -349,7 +360,30 @@ window.S = (function () {
     const kgs = h.map(x=>x.kg);
     const min = Math.min(...kgs), max = Math.max(...kgs);
     const rangeDelta = +(last.kg - h[0].kg).toFixed(1);
-    return { last, prev, delta, min, max, count:all.length, rangeDelta, hist:h };
+    const firstKg = all[0].kg;
+    const clampPct = v => Math.max(0, Math.min(100, v));
+    // 目标进度（以最早一条为起点，计算已完成的百分比）
+    const goal = d.weightGoal || 0;
+    let goalInfo = null;
+    if(goal){
+      const cur = last.kg;
+      if(Math.abs(goal - cur) < 0.05){ goalInfo = { dir:"keep", toGo:0, pct:100, done:true }; }
+      else if(goal < cur){ const denom = firstKg - goal; const pct = denom<=0?100:clampPct((firstKg-cur)/denom*100);
+        goalInfo = { dir:"down", toGo:+(cur-goal).toFixed(1), pct:Math.round(pct), done: cur<=goal }; }
+      else { const denom = goal - firstKg; const pct = denom<=0?100:clampPct((cur-firstKg)/denom*100);
+        goalInfo = { dir:"up", toGo:+(goal-cur).toFixed(1), pct:Math.round(pct), done: cur>=goal }; }
+    }
+    // 健康体重范围（中国成人 BMI 标准 18.5–23.9）
+    let healthy = null;
+    const hgt = d.profile && d.profile.height;
+    if(hgt && hgt>=100){
+      const m = hgt/100;
+      const lo = +(18.5*m*m).toFixed(1), hi = +(23.9*m*m).toFixed(1);
+      let status = null, bmi = null;
+      if(last){ bmi = +(last.kg/(m*m)).toFixed(1); status = bmi<18.5 ? "low" : (bmi>23.9 ? "high" : "normal"); }
+      healthy = { lo, hi, status, bmi };
+    }
+    return { last, prev, delta, min, max, count:all.length, rangeDelta, hist:h, goal, goalInfo, healthy };
   }
 
   /* ---------- 远程每日推送 ---------- */
@@ -603,7 +637,7 @@ window.S = (function () {
            sv, addSaving, setSalaryDay, setGoal, daysToSalary,
            putImg, getImg, delImg, compressImage, fetchDaily, reset, exportData, importData,
            museList, addMuse, delMuse,
-           addWeight, getWeight, weightHistory, weightStats,
+           addWeight, getWeight, weightHistory, weightStats, setHeight, setWeightGoal,
            normURL, getSyncURL, syncInfo, pushSync, pullSync, connectSync, setSyncURL, initSync, testSupa,
            lockEnabled, setPin, verifyPin, disableLock, changePin };
 })();
